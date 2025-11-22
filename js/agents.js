@@ -3,6 +3,134 @@
  * Each agent is a virtual musician with personality and capabilities
  */
 
+/**
+ * MusicalContext - Global musical state for the band
+ */
+class MusicalContext {
+    constructor() {
+        this.key = 'c';
+        this.scale = 'minor';
+        this.bpm = 120;
+        this.tension = 0.5;  // 0 = calm, 1 = intense
+        this.section = 'verse';  // intro, verse, chorus, bridge, outro
+        this.progression = [];
+        this.currentChordIndex = 0;
+        this.barsSinceChange = 0;
+    }
+
+    setKey(key, scale = 'minor') {
+        this.key = key.toLowerCase();
+        this.scale = scale;
+        this.generateProgression();
+    }
+
+    setBPM(bpm) {
+        this.bpm = Math.max(60, Math.min(200, bpm));
+    }
+
+    setTension(value) {
+        this.tension = Math.max(0, Math.min(1, value));
+    }
+
+    setSection(section) {
+        this.section = section;
+        this.barsSinceChange = 0;
+    }
+
+    generateProgression() {
+        const progressions = {
+            major: [
+                ['I', 'IV', 'V', 'I'],
+                ['I', 'vi', 'IV', 'V'],
+                ['I', 'V', 'vi', 'IV'],
+                ['ii', 'V', 'I', 'vi']
+            ],
+            minor: [
+                ['i', 'iv', 'VII', 'III'],
+                ['i', 'VI', 'III', 'VII'],
+                ['i', 'iv', 'v', 'i'],
+                ['i', 'VII', 'VI', 'VII']
+            ],
+            dorian: [
+                ['i', 'IV', 'VII', 'i'],
+                ['i', 'ii', 'IV', 'VII']
+            ],
+            mixolydian: [
+                ['I', 'VII', 'IV', 'I'],
+                ['I', 'IV', 'VII', 'IV']
+            ]
+        };
+
+        const scaleProgressions = progressions[this.scale] || progressions.minor;
+        this.progression = scaleProgressions[Math.floor(Math.random() * scaleProgressions.length)];
+        this.currentChordIndex = 0;
+    }
+
+    getCurrentChord() {
+        return this.progression[this.currentChordIndex] || 'i';
+    }
+
+    advanceChord() {
+        this.currentChordIndex = (this.currentChordIndex + 1) % this.progression.length;
+        this.barsSinceChange++;
+    }
+
+    getNotesForScale() {
+        const scaleNotes = {
+            'c': { major: ['c', 'd', 'e', 'f', 'g', 'a', 'b'], minor: ['c', 'd', 'eb', 'f', 'g', 'ab', 'bb'] },
+            'd': { major: ['d', 'e', 'f#', 'g', 'a', 'b', 'c#'], minor: ['d', 'e', 'f', 'g', 'a', 'bb', 'c'] },
+            'e': { major: ['e', 'f#', 'g#', 'a', 'b', 'c#', 'd#'], minor: ['e', 'f#', 'g', 'a', 'b', 'c', 'd'] },
+            'f': { major: ['f', 'g', 'a', 'bb', 'c', 'd', 'e'], minor: ['f', 'g', 'ab', 'bb', 'c', 'db', 'eb'] },
+            'g': { major: ['g', 'a', 'b', 'c', 'd', 'e', 'f#'], minor: ['g', 'a', 'bb', 'c', 'd', 'eb', 'f'] },
+            'a': { major: ['a', 'b', 'c#', 'd', 'e', 'f#', 'g#'], minor: ['a', 'b', 'c', 'd', 'e', 'f', 'g'] },
+            'b': { major: ['b', 'c#', 'd#', 'e', 'f#', 'g#', 'a#'], minor: ['b', 'c#', 'd', 'e', 'f#', 'g', 'a'] }
+        };
+        return scaleNotes[this.key]?.[this.scale] || scaleNotes.c.minor;
+    }
+
+    getContextForPrompt() {
+        return `
+MUSICAL CONTEXT:
+- Key: ${this.key} ${this.scale}
+- Current Chord: ${this.getCurrentChord()}
+- Tension: ${this.tension.toFixed(1)} (${this.tension > 0.7 ? 'HIGH - energetic!' : this.tension < 0.3 ? 'LOW - calm' : 'MEDIUM'})
+- Section: ${this.section}
+- BPM: ${this.bpm}
+- Scale notes: ${this.getNotesForScale().join(', ')}`;
+    }
+}
+
+/**
+ * Pattern length preferences per role
+ */
+const PATTERN_LENGTH_PREFS = {
+    drums: {
+        lengths: [1, 2, 4],
+        weights: [0.4, 0.45, 0.15],
+        maxWhenTense: 2
+    },
+    bass: {
+        lengths: [1, 2, 4, 8],
+        weights: [0.2, 0.4, 0.3, 0.1],
+        maxWhenTense: 4
+    },
+    lead: {
+        lengths: [2, 4, 8, 16],
+        weights: [0.2, 0.4, 0.3, 0.1],
+        maxWhenTense: 4
+    },
+    pads: {
+        lengths: [4, 8, 16],
+        weights: [0.3, 0.4, 0.3],
+        maxWhenTense: 8
+    },
+    fx: {
+        lengths: [1, 2, 4],
+        weights: [0.3, 0.4, 0.3],
+        maxWhenTense: 2
+    }
+};
+
 class Agent {
     constructor(id, config) {
         this.id = id;
@@ -13,13 +141,18 @@ class Agent {
 
         // State
         this.code = '';
+        this.patternLength = 4;  // Default 4 bars
         this.isActive = false;
         this.isMuted = false;
         this.isSolo = false;
         this.isGenerating = false;
         this.isListening = false;
 
-        // Pattern history
+        // Pattern history for variation
+        this.patternHistory = [];
+        this.maxHistory = 5;
+
+        // Legacy history for undo/redo
         this.history = [];
         this.historyIndex = -1;
 
@@ -27,6 +160,74 @@ class Agent {
         this.onCodeChange = null;
         this.onStatusChange = null;
         this.onChat = null;
+    }
+
+    /**
+     * Choose pattern length based on role and context
+     */
+    choosePatternLength(musicalContext) {
+        const prefs = PATTERN_LENGTH_PREFS[this.id] || PATTERN_LENGTH_PREFS.bass;
+        let availableLengths = [...prefs.lengths];
+        let weights = [...prefs.weights];
+
+        // If high tension, prefer shorter patterns (more reactive)
+        if (musicalContext && musicalContext.tension > 0.7) {
+            availableLengths = availableLengths.filter(l => l <= prefs.maxWhenTense);
+            weights = weights.slice(0, availableLengths.length);
+        }
+
+        // 60% chance to keep same length if recently changed
+        if (musicalContext && musicalContext.barsSinceChange < 8 && this.patternLength) {
+            if (Math.random() < 0.6 && availableLengths.includes(this.patternLength)) {
+                return this.patternLength;
+            }
+        }
+
+        // Weighted random selection
+        const totalWeight = weights.reduce((a, b) => a + b, 0);
+        let random = Math.random() * totalWeight;
+
+        for (let i = 0; i < availableLengths.length; i++) {
+            random -= weights[i];
+            if (random <= 0) {
+                return availableLengths[i];
+            }
+        }
+
+        return availableLengths[0];
+    }
+
+    /**
+     * Get pattern history for prompt (to avoid repetition)
+     */
+    getHistoryForPrompt() {
+        if (this.patternHistory.length === 0) return '';
+
+        const historyLines = this.patternHistory.map((h, i) =>
+            `${i + 1}. [${h.length} bars] ${h.description || h.code.substring(0, 50)}...`
+        ).join('\n');
+
+        return `
+⚠️ AVOID REPEATING - Your last ${this.patternHistory.length} patterns:
+${historyLines}
+Generate something DIFFERENT!`;
+    }
+
+    /**
+     * Add to pattern history
+     */
+    addToHistory(code, length, description = '') {
+        this.patternHistory.push({
+            code,
+            length,
+            description,
+            timestamp: Date.now()
+        });
+
+        // Keep only last N patterns
+        if (this.patternHistory.length > this.maxHistory) {
+            this.patternHistory.shift();
+        }
     }
 
     /**
@@ -70,60 +271,119 @@ class Agent {
      * Call Claude/Gemini API for code generation
      */
     async callAPI(prompt, context) {
+        // Get musical context from band
+        const musicalContext = context.musicalContext;
+        const suggestedLength = this.choosePatternLength(musicalContext);
+        this.patternLength = suggestedLength;
+
         // Build context from other agents
-        let contextInfo = '';
+        let otherAgentsInfo = '';
         if (context.otherAgents) {
             const activeAgents = Object.entries(context.otherAgents)
                 .filter(([id, agent]) => id !== this.id && agent.isActive && agent.code)
-                .map(([id, agent]) => `${agent.name}: ${agent.code.substring(0, 100)}...`);
+                .map(([id, agent]) => `${agent.name} (${agent.patternLength || 4} bars): ${agent.code.substring(0, 60)}...`);
 
             if (activeAgents.length > 0) {
-                contextInfo = `\n\nOther musicians currently playing:\n${activeAgents.join('\n')}\n\nAdapt your pattern to complement them!`;
+                otherAgentsInfo = `\n\nOTHER MUSICIANS PLAYING:\n${activeAgents.join('\n')}\nAdapt your pattern to complement them!`;
             }
         }
+
+        // Get musical context info
+        const musicalInfo = musicalContext ? musicalContext.getContextForPrompt() : '';
+
+        // Get history to avoid repetition
+        const historyInfo = this.getHistoryForPrompt();
 
         // Build the generation prompt
         const systemPrompt = `You are ${this.fullName}, a virtual musician in an AI band.
 
 ROLE: ${this.config.role}
 PERSONALITY: ${this.config.personality}
+${musicalInfo}
+
+YOUR PATTERN LENGTH: ${suggestedLength} bars
+${suggestedLength === 1 ? '(use .fast(4) modifier)' :
+  suggestedLength === 2 ? '(use .fast(2) modifier)' :
+  suggestedLength === 4 ? '(no modifier needed)' :
+  suggestedLength === 8 ? '(use .slow(2) modifier)' :
+  '(use .slow(4) modifier)'}
 
 Generate Strudel (TidalCycles) code for live music performance.
 
 CRITICAL RULES:
 1. Output ONLY valid Strudel code, no markdown, no explanation, no comments
 2. For SYNTHS: use m("pattern").note().s("synthname") - synths: sine, sawtooth, square, triangle
-3. For DRUMS: use Tidal names directly: 808bd (kick), 808sd (snare), 808ch (closed hat), 808oh (open hat), 808cp (clap), 909bd, 909sd, etc.
+3. For DRUMS: use Tidal names directly: 808bd, 808sd, 808ch, 808oh, 808cp, 909bd, 909sd, etc.
 4. Use stack() to layer multiple patterns: stack(kick, hihat, percussion)
 5. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
 6. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
-7. Keep patterns simple and musical
+7. Keep patterns simple and musical - USE THE SCALE NOTES PROVIDED
 8. DO NOT use: note() without m(), .bank(), mask, stutter, slide, pan, or any undefined functions
 9. Available drum sounds: 808bd, 808sd, 808ch, 808oh, 808cp, 808mt, 808ht, 808lt, 909bd, 909sd, 909ch, 909oh, 909cp
 
-BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
-- 1 bar: use .fast(4) - pattern loops 4x per cycle
-- 2 bars: use .fast(2) - pattern loops 2x per cycle
-- 4 bars: default, no modifier needed
-- 8 bars: use .slow(2) - pattern spans 2 cycles
-- 16 bars: use .slow(4) - pattern spans 4 cycles
+VARIATION RULES:
+- Use DIFFERENT rhythms and note patterns each time
+- Vary note durations and densities
+- Try syncopation, off-beats, rests
+- Use Strudel modifiers: .every(), .sometimes(), .off(), .rev()
+${historyInfo}
 
-EXAMPLES:
-- Drums basic: stack(s("808bd ~ 808sd ~").gain(0.9), s("808ch*8").gain(0.3))
-- Drums funky: stack(s("808bd ~ [808sd ~] [~ 808bd]").gain(0.9), s("808ch*8").gain(0.3), s("~ ~ 808cp ~").gain(0.4))
-- Bass 8 bars: m("c2 eb2 g2 bb2 c3 bb2 g2 eb2").note().s("sawtooth").slow(2).lpf(800).gain(0.5)
-- Lead 16-bar solo: m("c4 e4 g4 b4 c5 d5 e5 g5 a5 g5 e5 d5 c5 b4 g4 e4").note().s("square").slow(4).lpf(2000).gain(0.5)
-- Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
-- FX: m("c5*4").note().s("sine").decay(0.05).delay(0.5).gain(0.2)`;
+EXAMPLES for ${suggestedLength}-bar patterns:
+${this.getExamplesForLength(suggestedLength)}`;
 
-        const userPrompt = `${prompt}${contextInfo}
+        const userPrompt = `${prompt}${otherAgentsInfo}
 
-Generate your pattern now:`;
+Generate your ${suggestedLength}-bar pattern now:`;
 
-        // Use fetch to call API (simplified - in production use proper backend)
-        // For demo, we'll simulate with predefined patterns or use Claude API
+        // Use fetch to call API
         const response = await this.generateWithFallback(userPrompt, systemPrompt);
-        return this.cleanCode(response);
+        const cleanedCode = this.cleanCode(response);
+
+        // Add to history for variation
+        this.addToHistory(cleanedCode, suggestedLength, prompt.substring(0, 50));
+
+        return cleanedCode;
+    }
+
+    /**
+     * Get examples for specific pattern length
+     */
+    getExamplesForLength(length) {
+        const examples = {
+            drums: {
+                1: 's("808bd 808sd 808bd 808sd").gain(0.9)',
+                2: 'stack(s("808bd ~ 808sd ~").gain(0.9), s("808ch*8").gain(0.3)).fast(2)',
+                4: 'stack(s("808bd ~ 808sd ~ 808bd ~ [808sd 808sd]").gain(0.9), s("808ch*16").gain(0.3))',
+                8: 'stack(s("808bd ~ 808sd ~ 808bd [~ 808bd] 808sd ~").gain(0.9), s("808ch*8").gain(0.3)).slow(2)',
+                16: 'stack(s("808bd ~ 808sd ~").every(4, fast(2)).gain(0.9), s("808ch*8").sometimes(fast(2)).gain(0.3)).slow(4)'
+            },
+            bass: {
+                1: 'm("c2 eb2 g2 c3").note().s("sawtooth").lpf(800).fast(4).gain(0.5)',
+                2: 'm("c2 ~ eb2 g2 | bb1 ~ d2 f2").note().s("sawtooth").lpf(800).fast(2).gain(0.5)',
+                4: 'm("c2 ~ eb2 g2 bb1 ~ d2 f2").note().s("sawtooth").lpf(800).gain(0.5)',
+                8: 'm("c2 eb2 g2 bb2 c3 bb2 g2 eb2").note().s("sawtooth").slow(2).lpf(800).gain(0.5)',
+                16: 'm("<c2 eb2 g2 bb2>").note().s("sawtooth").off(0.25, add(7)).slow(4).lpf(800).gain(0.5)'
+            },
+            lead: {
+                2: 'm("c4 d4 eb4 g4 | f4 eb4 d4 c4").note().s("square").lpf(2000).fast(2).gain(0.4)',
+                4: 'm("c4 d4 eb4 g4 f4 eb4 d4 c4").note().s("square").lpf(2000).gain(0.4)',
+                8: 'm("c4 d4 eb4 g4 bb4 g4 f4 eb4 d4 c4 ~ ~ ~ ~ ~ ~").note().s("square").slow(2).lpf(2000).gain(0.4)',
+                16: 'm("<c4 eb4 g4 bb4>").note().s("square").off(0.125, add(12)).slow(4).lpf(2000).gain(0.4)'
+            },
+            pads: {
+                4: 'm("<[c3,eb3,g3] [bb2,d3,f3]>").note().s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
+                8: 'm("<[c3,eb3,g3] [bb2,d3,f3] [ab2,c3,eb3] [g2,bb2,d3]>").note().s("triangle").slow(2).lpf(800).attack(0.5).release(2).gain(0.3)',
+                16: 'm("<[c3,eb3,g3,bb3]>").note().s("triangle").slow(4).lpf(600).attack(1).release(4).room(0.5).gain(0.25)'
+            },
+            fx: {
+                1: 'm("c5*8").note().s("sine").decay(0.03).fast(4).gain(0.2)',
+                2: 'm("c5*4 ~ ~ ~").note().s("sine").decay(0.05).delay(0.5).fast(2).gain(0.2)',
+                4: 'm("~ ~ ~ c5*4").note().s("sine").decay(0.05).delay(0.6).room(0.5).gain(0.2)'
+            }
+        };
+
+        const roleExamples = examples[this.id] || examples.bass;
+        return roleExamples[length] || roleExamples[4] || 'm("c3 e3 g3").note().s("sine").gain(0.3)';
     }
 
     /**
@@ -394,6 +654,9 @@ class Band {
         this.agents = new Map();
         this.director = null;
 
+        // Musical context
+        this.musicalContext = new MusicalContext();
+
         // Callbacks
         this.onAgentUpdate = null;
         this.onBandChat = null;
@@ -401,6 +664,63 @@ class Band {
 
         // Initialize agents
         this.initAgents();
+    }
+
+    // Musical context shortcuts
+    setKey(key, scale) { this.musicalContext.setKey(key, scale); }
+    setBPM(bpm) { this.musicalContext.setBPM(bpm); }
+    setTension(value) { this.musicalContext.setTension(value); }
+    setSection(section) { this.musicalContext.setSection(section); }
+
+    /**
+     * Calculate LCM (Least Common Multiple) for pattern synchronization
+     */
+    gcd(a, b) {
+        return b === 0 ? a : this.gcd(b, a % b);
+    }
+
+    lcm(a, b) {
+        return (a * b) / this.gcd(a, b);
+    }
+
+    /**
+     * Calculate master loop length (LCM of all pattern lengths)
+     */
+    calculateMasterLoop() {
+        const lengths = [...this.agents.values()]
+            .filter(a => a.isActive && !a.isMuted && a.code)
+            .map(a => a.patternLength || 4);
+
+        if (lengths.length === 0) return 4;
+
+        let result = lengths[0];
+        for (let i = 1; i < lengths.length; i++) {
+            result = this.lcm(result, lengths[i]);
+        }
+
+        // Limit to 32 bars max
+        return Math.min(result, 32);
+    }
+
+    /**
+     * Get loop visualization
+     */
+    getLoopVisualization() {
+        const masterLength = this.calculateMasterLoop();
+        const lines = [];
+
+        lines.push(`Master Loop: ${masterLength} bars`);
+        lines.push('');
+
+        [...this.agents.values()]
+            .filter(a => a.isActive && !a.isMuted && a.code)
+            .forEach(agent => {
+                const length = agent.patternLength || 4;
+                const repetitions = masterLength / length;
+                lines.push(`${agent.name}: ${length} bars (×${repetitions})`);
+            });
+
+        return lines.join('\n');
     }
 
     /**
@@ -480,9 +800,10 @@ class Band {
             return null;
         }
 
-        // Provide context of other agents
+        // Provide full context including musical context
         const context = {
-            otherAgents: Object.fromEntries(this.agents)
+            otherAgents: Object.fromEntries(this.agents),
+            musicalContext: this.musicalContext
         };
 
         return agent.generate(prompt, context);
@@ -671,3 +992,5 @@ class Band {
 // Export
 window.Agent = Agent;
 window.Band = Band;
+window.MusicalContext = MusicalContext;
+window.PATTERN_LENGTH_PREFS = PATTERN_LENGTH_PREFS;
