@@ -328,8 +328,9 @@ class App {
             return;
         }
 
-        this.ui.showLoading('Directing the band...');
+        // No overlay - show status in chat instead
         this.ui.addChatMessage('director', prompt);
+        this.ui.addChatMessage('system', '🎼 Generating...');
 
         try {
             await this.band.direct(prompt);
@@ -340,8 +341,6 @@ class App {
         } catch (error) {
             console.error('[App] Direction failed:', error);
             this.ui.addChatMessage('system', `Error: ${error.message}`);
-        } finally {
-            this.ui.hideLoading();
         }
     }
 
@@ -349,7 +348,6 @@ class App {
      * Apply mood preset
      */
     async applyMood(mood) {
-        this.ui.showLoading(`Applying ${mood} mood...`);
         this.ui.addChatMessage('director', `Let's go ${mood}!`);
 
         try {
@@ -360,8 +358,6 @@ class App {
             setTimeout(() => this.play(), 500);
         } catch (error) {
             console.error('[App] Mood failed:', error);
-        } finally {
-            this.ui.hideLoading();
         }
     }
 

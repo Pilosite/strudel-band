@@ -150,7 +150,7 @@ class StrudelEngine {
     /**
      * Play/evaluate code
      */
-    play(code) {
+    async play(code) {
         console.log('[StrudelEngine] play() called');
         console.log('[StrudelEngine] Input code:', code?.substring(0, 100) + '...');
 
@@ -163,6 +163,14 @@ class StrudelEngine {
         console.log('[StrudelEngine] hush function available:', !!this.hush);
 
         try {
+            // Resume audio context if suspended (important after stop!)
+            const audioCtx = window.getStrudelAudioContext?.();
+            if (audioCtx && audioCtx.state === 'suspended') {
+                console.log('[StrudelEngine] Resuming suspended audio context...');
+                await audioCtx.resume();
+                console.log('[StrudelEngine] Audio context resumed:', audioCtx.state);
+            }
+
             // Clean code
             const cleanCode = this.sanitizeCode(code);
             console.log('[StrudelEngine] Sanitized code:', cleanCode?.substring(0, 100) + '...');
@@ -174,7 +182,7 @@ class StrudelEngine {
             // Evaluate
             if (this.evaluate) {
                 console.log('[StrudelEngine] Calling evaluate()...');
-                this.evaluate(codeWithTempo);
+                await this.evaluate(codeWithTempo);
                 this.currentCode = codeWithTempo;
                 this.isPlaying = true;
 

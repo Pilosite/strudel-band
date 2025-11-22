@@ -508,14 +508,39 @@ class Band {
             }
         }
 
-        // Fallback: give same instruction to all
-        return {
-            drums: instruction,
-            bass: instruction,
-            lead: instruction,
-            pads: instruction,
-            fx: instruction
+        // Fallback: detect which agent is mentioned and only modify that one
+        const lower = instruction.toLowerCase();
+        const result = {};
+
+        // Detect specific agent mentions (French and English)
+        const agentKeywords = {
+            drums: ['drum', 'batterie', 'percussion', 'kick', 'snare', 'hihat'],
+            bass: ['bass', 'basse', 'sub', 'low'],
+            lead: ['lead', 'mélodie', 'melody', 'solo', 'hook'],
+            pads: ['pad', 'nappe', 'atmosphere', 'ambient', 'texture'],
+            fx: ['fx', 'effet', 'effect', 'glitch', 'noise', 'weird']
         };
+
+        let foundAgent = false;
+        for (const [agentId, keywords] of Object.entries(agentKeywords)) {
+            if (keywords.some(kw => lower.includes(kw))) {
+                result[agentId] = instruction;
+                foundAgent = true;
+            }
+        }
+
+        // If no specific agent found, apply to all
+        if (!foundAgent) {
+            return {
+                drums: instruction,
+                bass: instruction,
+                lead: instruction,
+                pads: instruction,
+                fx: instruction
+            };
+        }
+
+        return result;
     }
 
     /**
