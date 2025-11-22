@@ -394,6 +394,13 @@ stack(
                         window.hush = stop;
                     }
 
+                    // Load drum samples in fallback too!
+                    console.log("[Strudel] Loading drum machines (fallback)...");
+                    if (module2.samples) {
+                        await module2.samples("https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json");
+                        console.log("[Strudel] Drum machines loaded!");
+                    }
+
                     window.strudelReady = true;
                     console.log("🎉 Strudel ready (fallback)!");
                 } catch (e2) {
