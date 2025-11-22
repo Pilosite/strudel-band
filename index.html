@@ -355,14 +355,22 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load drum samples from Strudel's official sample repository
+        // Load drum machines + Dirt samples (like Strudel's default setup)
         try {
-            // Load Dirt-Samples for basic drums (bd, sd, hh, cp, etc.)
-            await samples('github:tidalcycles/Dirt-Samples/master');
-            console.log('[Strudel] Dirt-Samples loaded from GitHub!');
+            const ds = "https://raw.githubusercontent.com/felixroos/dough-samples/main";
+
+            await Promise.all([
+                // All drum machines, including RolandTR909 / RolandTR808 / etc.
+                samples(`${ds}/tidal-drum-machines.json`),
+
+                // Classic Dirt-Samples hits (bd, sd, hh, etc.)
+                samples(`${ds}/Dirt-Samples.json`),
+            ]);
+
+            console.log('[Strudel] dough-samples (drum-machines + Dirt-Samples) loaded!');
             window.drumsLoaded = true;
         } catch (e) {
-            console.warn('[Strudel] GitHub samples failed:', e.message);
+            console.warn('[Strudel] Sample loading failed:', e.message);
             window.drumsLoaded = false;
         }
 
