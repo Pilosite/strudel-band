@@ -99,7 +99,7 @@ CRITICAL RULES:
 6. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
 7. Keep patterns simple and musical
 8. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
-9. Available drum banks: RolandTR808, RolandTR707, RolandTR606, AkaiLinn, RhythmAce
+9. Available drum banks: RolandTR808, RolandTR909, RolandTR707, RolandTR606, LinnDrum, OberheimDMX, AkaiLinn
 
 BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
 - 1 bar: use .fast(4) - pattern loops 4x per cycle

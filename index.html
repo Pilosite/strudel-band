@@ -355,24 +355,22 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load samples from SuperDirt (the OFFICIAL source for Strudel drum machines!)
+        // Load samples - dough-samples JSON points to ritchse/tidal-drum-machines for audio files
         try {
-            console.log('[Strudel] Loading SuperDirt samples (official drum machines)...');
+            console.log('[Strudel] Loading drum machines from dough-samples...');
 
-            // SuperDirt is the REAL source for RolandTR808, RolandTR909, etc.
-            const superdirt = 'https://raw.githubusercontent.com/superdirt/superdirt/master/samples';
-
-            // Dirt-Samples for basic sounds (bd, sd, hh, cp, etc.)
+            const base = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
             const dirt = 'https://raw.githubusercontent.com/tidalcycles/Dirt-Samples/master';
 
             await Promise.all([
-                // SuperDirt drum machines
-                samples(`${superdirt}/strudel.json`, `${superdirt}/`),
-                // Dirt-Samples
-                samples(`${dirt}/strudel.json`, `${dirt}/`),
+                // Drum machines - JSON has _base pointing to ritchse/tidal-drum-machines
+                // MUST use 1-argument form to let Strudel use the _base in JSON!
+                samples(`${base}tidal-drum-machines.json`),
+                // Dirt-Samples for basic sounds (bd, sd, hh, etc.)
+                samples(`${dirt}/strudel.json`),
             ]);
 
-            console.log('[Strudel] SuperDirt + Dirt-Samples loaded!');
+            console.log('[Strudel] Drum machines + Dirt-Samples loaded!');
             window.drumsLoaded = true;
         } catch (e) {
             console.warn('[Strudel] Sample loading failed:', e.message);
