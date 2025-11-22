@@ -448,20 +448,24 @@ class App {
         this.ui.updateSoloState(agentId, isSolo);
 
         if (isSolo) {
-            // Mute all others
+            // Un-mute the solo agent, mute all others
+            agent.isMuted = false;
+            this.ui.updateMuteState(agentId, false);
+
             this.band.getAllAgents().forEach((a, id) => {
                 if (id !== agentId) {
                     a.isMuted = true;
                     this.ui.updateMuteState(id, true);
                 }
             });
-            agent.say("Solo time!");
+            agent.say("🎤 Solo time!");
         } else {
             // Unmute all
             this.band.getAllAgents().forEach((a, id) => {
                 a.isMuted = false;
                 this.ui.updateMuteState(id, false);
             });
+            agent.say("Everyone's back!");
         }
 
         this.updateLiveCode();
