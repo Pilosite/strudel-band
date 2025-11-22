@@ -355,25 +355,24 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load REAL samples from tidalcycles repos (not dough-samples which has no audio files!)
+        // Load samples from SuperDirt (the OFFICIAL source for Strudel drum machines!)
         try {
-            console.log('[Strudel] Loading REAL samples from tidalcycles repos...');
+            console.log('[Strudel] Loading SuperDirt samples (official drum machines)...');
 
-            // Drum machines from the REAL tidal-drum-machines repo
-            const dm = 'https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main';
+            // SuperDirt is the REAL source for RolandTR808, RolandTR909, etc.
+            const superdirt = 'https://raw.githubusercontent.com/superdirt/superdirt/master/samples';
 
-            // Dirt-Samples from the REAL Dirt-Samples repo
-            const ds = 'https://raw.githubusercontent.com/tidalcycles/Dirt-Samples/master';
+            // Dirt-Samples for basic sounds (bd, sd, hh, cp, etc.)
+            const dirt = 'https://raw.githubusercontent.com/tidalcycles/Dirt-Samples/master';
 
             await Promise.all([
-                // Drum machines (RolandTR808, RolandTR707, AkaiLinn, etc.)
-                // NOTE: The file is machines.json, NOT tidal-drum-machines.json!
-                samples(`${dm}/machines.json`, `${dm}/machines/`),
-                // Dirt-Samples (bd, sd, hh, cp, etc.)
-                samples(`${ds}/strudel.json`, `${ds}/`),
+                // SuperDirt drum machines
+                samples(`${superdirt}/strudel.json`, `${superdirt}/`),
+                // Dirt-Samples
+                samples(`${dirt}/strudel.json`, `${dirt}/`),
             ]);
 
-            console.log('[Strudel] REAL tidalcycles samples loaded!');
+            console.log('[Strudel] SuperDirt + Dirt-Samples loaded!');
             window.drumsLoaded = true;
         } catch (e) {
             console.warn('[Strudel] Sample loading failed:', e.message);
