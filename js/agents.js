@@ -214,12 +214,28 @@ Generate your pattern now:`;
         const agentPatterns = patterns[this.id] || patterns.drums;
 
         // Match mood from prompt
-        if (lowerPrompt.includes('funk')) return agentPatterns.funky;
-        if (lowerPrompt.includes('minimal')) return agentPatterns.minimal;
-        if (lowerPrompt.includes('intense') || lowerPrompt.includes('chaos')) return agentPatterns.intense;
-        if (lowerPrompt.includes('ambient') || lowerPrompt.includes('chill')) return agentPatterns.ambient;
+        let pattern;
+        if (lowerPrompt.includes('funk')) {
+            pattern = agentPatterns.funky;
+        } else if (lowerPrompt.includes('minimal')) {
+            pattern = agentPatterns.minimal;
+        } else if (lowerPrompt.includes('intense') || lowerPrompt.includes('chaos')) {
+            pattern = agentPatterns.intense;
+        } else if (lowerPrompt.includes('ambient') || lowerPrompt.includes('chill')) {
+            pattern = agentPatterns.ambient;
+        } else {
+            pattern = agentPatterns.default;
+        }
 
-        return agentPatterns.default;
+        // Detect bar length and apply .slow() modifier
+        // 8 bars/mesures = .slow(2), 16 bars = .slow(4)
+        if (lowerPrompt.includes('16 bar') || lowerPrompt.includes('16 mesure')) {
+            pattern = pattern.replace(/\.gain\(/, '.slow(4).gain(');
+        } else if (lowerPrompt.includes('8 bar') || lowerPrompt.includes('8 mesure')) {
+            pattern = pattern.replace(/\.gain\(/, '.slow(2).gain(');
+        }
+
+        return pattern;
     }
 
     /**

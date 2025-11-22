@@ -146,12 +146,14 @@ class App {
                     e.preventDefault();
                     console.log('[App] CTRL+Enter detected, directing band...');
                     this.directBand();
+                    directorInput.value = '';  // Clear input after submit
                 }
                 // Also allow Shift+Enter to submit (alternative)
                 if (e.shiftKey && e.key === 'Enter') {
                     e.preventDefault();
                     console.log('[App] Shift+Enter detected, directing band...');
                     this.directBand();
+                    directorInput.value = '';  // Clear input after submit
                 }
             });
             console.log('[App] Director prompt keyboard shortcuts attached');
