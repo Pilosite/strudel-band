@@ -339,7 +339,7 @@ stack(
     <!-- Strudel.js - TidalCycles for the browser (using esm.sh for proper ESM resolution) -->
     <script type="module">
         import { controls, repl, stack, sequence, cat, note, s, sound } from 'https://esm.sh/@strudel/core@1.1.0';
-        import { mini } from 'https://esm.sh/@strudel/mini@1.1.0';
+        import { mini, m } from 'https://esm.sh/@strudel/mini@1.1.0';
         import { initAudioOnFirstClick, getAudioContext, webaudioOutput, registerSynthSounds, samples } from 'https://esm.sh/@strudel/webaudio@1.1.0';
 
         console.log('[Strudel] Initializing...');
@@ -383,9 +383,13 @@ stack(
         window.s = s;
         window.sound = sound;
 
+        // CRITICAL: Expose mini() function to parse mini-notation strings into patterns
+        window.m = m;
+        window.mini = m;
+
         // Mark Strudel as ready
         window.strudelReady = true;
-        console.log('[Strudel] Module loaded and ready with pattern functions: stack, sequence, cat, note, s, sound');
+        console.log('[Strudel] Module loaded with: stack, sequence, cat, note, s, sound, m (mini)');
     </script>
 
     <script src="js/debug.js"></script>

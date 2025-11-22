@@ -93,18 +93,18 @@ Generate Strudel (TidalCycles) code for live music performance.
 CRITICAL RULES:
 1. Output ONLY valid Strudel code, no markdown, no explanation, no comments
 2. Use ONLY these synth sounds: sine, sawtooth, square, triangle
-3. Syntax: note("pattern").s("synthname").effects()
+3. ALWAYS use m("pattern").note().s("synthname") syntax - m() parses mini-notation
 4. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
 5. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
 6. Keep patterns simple and musical
-7. DO NOT use: mask, stutter, slide, pan, or any other undefined functions
+7. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
 
 EXAMPLES:
-- Drums: note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8)
-- Bass: note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2).gain(0.5)
-- Lead: note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)
-- Pads: note("<c3 e3 g3>").s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
-- FX: note("c5*4").s("sine").decay(0.05).delay(0.5).gain(0.2)`;
+- Drums: m("c1 ~ c1 ~").note().s("sine").decay(0.15).gain(0.8)
+- Bass: m("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)
+- Lead: m("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)
+- Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
+- FX: m("c5*4").note().s("sine").decay(0.05).delay(0.5).gain(0.2)`;
 
         const userPrompt = `${prompt}${contextInfo}
 
@@ -173,39 +173,39 @@ Generate your pattern now:`;
 
         const patterns = {
             drums: {
-                default: 'note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8)',
-                funky: 'note("c1 ~ [c1 c1] ~").s("sine").decay(0.1).gain(0.8)',
-                minimal: 'note("c1 ~ ~ ~ c1 ~ ~ ~").s("sine").decay(0.2).gain(0.6)',
-                intense: 'note("c1*4").s("sine").decay(0.08).gain(0.9)',
-                ambient: 'note("~ c1 ~ ~").s("sine").decay(0.4).room(0.8).gain(0.4)'
+                default: 'm("c1 ~ c1 ~").note().s("sine").decay(0.15).gain(0.8)',
+                funky: 'm("c1 ~ [c1 c1] ~").note().s("sine").decay(0.1).gain(0.8)',
+                minimal: 'm("c1 ~ ~ ~ c1 ~ ~ ~").note().s("sine").decay(0.2).gain(0.6)',
+                intense: 'm("c1*4").note().s("sine").decay(0.08).gain(0.9)',
+                ambient: 'm("~ c1 ~ ~").note().s("sine").decay(0.4).room(0.8).gain(0.4)'
             },
             bass: {
-                default: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
-                funky: 'note("c2*2 ~ eb2 [g2 c3]").s("sawtooth").lpf(600).decay(0.15).gain(0.5)',
-                minimal: 'note("c2 ~ ~ c2 ~ ~ ~ ~").s("sine").lpf(400).decay(0.3).gain(0.5)',
-                intense: 'note("c2*4 eb2*2 g2*2").s("square").lpf(1200).gain(0.6)',
-                ambient: 'note("<c2 g2>").s("sine").lpf(300).attack(0.5).release(2).gain(0.4)'
+                default: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
+                funky: 'm("c2*2 ~ eb2 [g2 c3]").note().s("sawtooth").lpf(600).decay(0.15).gain(0.5)',
+                minimal: 'm("c2 ~ ~ c2 ~ ~ ~ ~").note().s("sine").lpf(400).decay(0.3).gain(0.5)',
+                intense: 'm("c2*4 eb2*2 g2*2").note().s("square").lpf(1200).gain(0.6)',
+                ambient: 'm("<c2 g2>").note().s("sine").lpf(300).attack(0.5).release(2).gain(0.4)'
             },
             lead: {
-                default: 'note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)',
-                funky: 'note("[c4 ~ e4 ~]*2").s("square").lpf(3000).decay(0.1).gain(0.5)',
-                minimal: 'note("c5 ~ ~ ~ e5 ~ ~ ~").s("sine").delay(0.5).gain(0.3)',
-                intense: 'note("c4*4 e4*4 g4*4 b4*4").s("sawtooth").lpf(4000).gain(0.5)',
-                ambient: 'note("<c5 e5 g5>").s("sine").lpf(1500).attack(1).release(3).delay(0.6).gain(0.3)'
+                default: 'm("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)',
+                funky: 'm("[c4 ~ e4 ~]*2").note().s("square").lpf(3000).decay(0.1).gain(0.5)',
+                minimal: 'm("c5 ~ ~ ~ e5 ~ ~ ~").note().s("sine").delay(0.5).gain(0.3)',
+                intense: 'm("c4*4 e4*4 g4*4 b4*4").note().s("sawtooth").lpf(4000).gain(0.5)',
+                ambient: 'm("<c5 e5 g5>").note().s("sine").lpf(1500).attack(1).release(3).delay(0.6).gain(0.3)'
             },
             pads: {
-                default: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2).gain(0.3)',
-                funky: 'note("<c3 eb3 g3 bb3>").s("sawtooth").lpf(800).attack(0.2).gain(0.4)',
-                minimal: 'note("<c3 g3>").s("sine").lpf(400).attack(2).release(4).gain(0.3)',
-                intense: 'note("<c3 eb3 g3 b3>").s("sawtooth").lpf(2000).gain(0.5)',
-                ambient: 'note("<c3 e3 g3 b3>").s("sine").lpf(600).attack(2).release(6).room(0.9).gain(0.25)'
+                default: 'm("<c3 e3 g3>").note().s("sawtooth").lpf(500).attack(0.5).release(2).gain(0.3)',
+                funky: 'm("<c3 eb3 g3 bb3>").note().s("sawtooth").lpf(800).attack(0.2).gain(0.4)',
+                minimal: 'm("<c3 g3>").note().s("sine").lpf(400).attack(2).release(4).gain(0.3)',
+                intense: 'm("<c3 eb3 g3 b3>").note().s("sawtooth").lpf(2000).gain(0.5)',
+                ambient: 'm("<c3 e3 g3 b3>").note().s("sine").lpf(600).attack(2).release(6).room(0.9).gain(0.25)'
             },
             fx: {
-                default: 'note("c5*4").s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.2)',
-                funky: 'note("c6*4").s("square").decay(0.02).delay(0.25).gain(0.2)',
-                minimal: 'note("~ ~ ~ c5").s("sine").decay(0.3).room(0.8).gain(0.15)',
-                intense: 'note("c5*8").s("triangle").decay(0.02).lpf(8000).gain(0.3)',
-                ambient: 'note("<c6 g6>").s("sine").attack(1).release(4).room(0.9).gain(0.15)'
+                default: 'm("c5*4").note().s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.2)',
+                funky: 'm("c6*4").note().s("square").decay(0.02).delay(0.25).gain(0.2)',
+                minimal: 'm("~ ~ ~ c5").note().s("sine").decay(0.3).room(0.8).gain(0.15)',
+                intense: 'm("c5*8").note().s("triangle").decay(0.02).lpf(8000).gain(0.3)',
+                ambient: 'm("<c6 g6>").note().s("sine").attack(1).release(4).room(0.9).gain(0.15)'
             }
         };
 
@@ -349,13 +349,13 @@ class Band {
      * Initialize all agents
      */
     initAgents() {
-        // Default starting patterns (using correct Strudel note().s() syntax)
+        // Default starting patterns using m() to parse mini-notation
         const defaultPatterns = {
-            drums: 'note("c1 c1 c1 c1").s("sine").decay(0.15).gain(0.8)',
-            bass: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
-            lead: 'note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)',
-            pads: 'note("<c3 e3 g3>").s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
-            fx: 'note("c5*4").s("sine").decay(0.05).delay(0.5).gain(0.2)'
+            drums: 'm("c1 c1 c1 c1").note().s("sine").decay(0.15).gain(0.8)',
+            bass: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
+            lead: 'm("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)',
+            pads: 'm("<c3 e3 g3>").note().s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
+            fx: 'm("c5*4").note().s("sine").decay(0.05).delay(0.5).gain(0.2)'
         };
 
         Object.entries(CONFIG.AGENTS).forEach(([id, config]) => {
