@@ -163,5 +163,4 @@ Respond in JSON format:
     }
 };
 
-// Freeze config to prevent modifications
-Object.freeze(CONFIG);
+// Note: CONFIG is not frozen so API keys can be set dynamically
