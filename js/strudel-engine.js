@@ -146,20 +146,29 @@ class StrudelEngine {
      * Play/evaluate code
      */
     play(code) {
+        console.log('[StrudelEngine] play() called');
+        console.log('[StrudelEngine] Input code:', code?.substring(0, 100) + '...');
+
         if (!code || code.trim() === '') {
             console.warn('[StrudelEngine] No code to play');
             return false;
         }
 
+        console.log('[StrudelEngine] evaluate function available:', !!this.evaluate);
+        console.log('[StrudelEngine] hush function available:', !!this.hush);
+
         try {
             // Clean code
             const cleanCode = this.sanitizeCode(code);
+            console.log('[StrudelEngine] Sanitized code:', cleanCode?.substring(0, 100) + '...');
 
             // Set tempo if needed
             const codeWithTempo = this.applyTempo(cleanCode);
+            console.log('[StrudelEngine] Code with tempo:', codeWithTempo);
 
             // Evaluate
             if (this.evaluate) {
+                console.log('[StrudelEngine] Calling evaluate()...');
                 this.evaluate(codeWithTempo);
                 this.currentCode = codeWithTempo;
                 this.isPlaying = true;
@@ -167,11 +176,15 @@ class StrudelEngine {
                 if (this.onPlay) this.onPlay(codeWithTempo);
                 if (this.onEvaluate) this.onEvaluate(codeWithTempo);
 
-                console.log('[StrudelEngine] Playing:', codeWithTempo);
+                console.log('[StrudelEngine] evaluate() completed successfully');
                 return true;
+            } else {
+                console.error('[StrudelEngine] No evaluate function! Strudel not loaded properly');
+                return false;
             }
         } catch (error) {
             console.error('[StrudelEngine] Play error:', error);
+            console.error('[StrudelEngine] Error stack:', error.stack);
             if (this.onError) this.onError(error);
             return false;
         }
