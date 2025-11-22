@@ -252,25 +252,26 @@ Generate your pattern now:`;
     detectBarModifier(prompt) {
         // Match patterns like "1 bar", "1 mesure", "2 bars", "8 mesures", etc.
         // Also match French: "sur 8 mesures", "en 2 mesures"
+        // Note: bars? and mesures? to match both singular and plural
 
         // 16 bars
-        if (/16\s*(bar|mesure)/i.test(prompt) || /seize\s*(bar|mesure)/i.test(prompt)) {
+        if (/16\s*(bars?|mesures?)/i.test(prompt) || /seize\s*(bars?|mesures?)/i.test(prompt)) {
             return '.slow(4)';
         }
         // 8 bars
-        if (/8\s*(bar|mesure)/i.test(prompt) || /huit\s*(bar|mesure)/i.test(prompt)) {
+        if (/8\s*(bars?|mesures?)/i.test(prompt) || /huit\s*(bars?|mesures?)/i.test(prompt)) {
             return '.slow(2)';
         }
         // 2 bars
-        if (/2\s*(bar|mesure)/i.test(prompt) || /deux\s*(bar|mesure)/i.test(prompt)) {
+        if (/2\s*(bars?|mesures?)/i.test(prompt) || /deux\s*(bars?|mesures?)/i.test(prompt)) {
             return '.fast(2)';
         }
         // 1 bar (check after 16, 12, etc. to avoid false matches)
-        if (/(?:^|\s)1\s*(bar|mesure)/i.test(prompt) || /une?\s*(bar|mesure)/i.test(prompt)) {
+        if (/(?:^|\s)1\s*(bars?|mesures?)/i.test(prompt) || /une?\s*(bars?|mesures?)/i.test(prompt)) {
             return '.fast(4)';
         }
         // 4 bars is default, no modifier needed
-        if (/4\s*(bar|mesure)/i.test(prompt) || /quatre\s*(bar|mesure)/i.test(prompt)) {
+        if (/4\s*(bars?|mesures?)/i.test(prompt) || /quatre\s*(bars?|mesures?)/i.test(prompt)) {
             return null; // default
         }
 
