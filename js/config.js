@@ -97,10 +97,14 @@ IMPORTANT RULES:
 1. If the user mentions a SPECIFIC instrument (bass, drums, lead, pads, fx), ONLY modify that instrument
 2. Only include instruments that need to change in the JSON
 3. If the instruction is general (like "more energy"), then include all instruments
+4. BAR LENGTH: If user says "8 bars", "8 mesures", "16 bars", include that in the instruction
+   - "solo sur 8 mesures" → instruction should say "8-bar solo" or "use .slow(2)"
+   - Default is 4 bars (1 cycle)
 
 Examples:
-- "fais moi une basse funky" → only bass should be in the JSON
-- "change the drums" → only drums
+- "fais moi une basse funky" → {"bass": "funky bass pattern"}
+- "lead solo sur 8 mesures" → {"lead": "8-bar melodic solo, use .slow(2)"}
+- "drums plus minimal, 8 bars" → {"drums": "minimal 8-bar pattern with .slow(2)"}
 - "everything more intense" → all instruments
 
 Respond in JSON format with ONLY the instruments that need to change:

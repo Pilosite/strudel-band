@@ -96,13 +96,15 @@ CRITICAL RULES:
 3. ALWAYS use m("pattern").note().s("synthname") syntax - m() parses mini-notation
 4. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
 5. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
-6. Keep patterns simple and musical
-7. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
+6. BAR LENGTH: Use .slow(n) for longer patterns. .slow(2) = 8 bars, .slow(4) = 16 bars. Use .fast(2) for faster.
+7. Keep patterns simple and musical
+8. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
 
 EXAMPLES:
-- Drums: s("bd hh sd hh").gain(0.8)  (bd=kick, sd=snare, hh=hihat, cp=clap, oh=open hat)
+- Drums 4 bars: s("bd hh sd hh").gain(0.8)
+- Drums 8 bars: s("bd hh sd hh bd hh sd cp").slow(2).gain(0.8)
 - Bass: m("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)
-- Lead: m("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)
+- Lead 8-bar solo: m("c4 e4 g4 b4 c5 b4 g4 e4").note().s("square").slow(2).lpf(2000).gain(0.5)
 - Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
 - FX: m("c5*4").note().s("sine").decay(0.05).delay(0.5).gain(0.2)`;
 

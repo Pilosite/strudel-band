@@ -468,17 +468,22 @@ class App {
             });
             agent.say("🎤 Solo time!");
         } else {
-            // Unmute all
+            // Unmute AND reactivate all agents
             this.band.getAllAgents().forEach((a, id) => {
                 a.isMuted = false;
+                a.isActive = true;  // Force re-activate
+                a.isSolo = false;   // Clear solo state
                 this.ui.updateMuteState(id, false);
+                this.ui.updateSoloState(id, false);
             });
             agent.say("Everyone's back!");
+            console.log('[App] Solo ended - all agents reactivated');
         }
 
         this.updateLiveCode();
         if (this.isPlaying) {
-            this.play();
+            // Small delay to ensure UI updates before playing
+            setTimeout(() => this.play(), 100);
         }
     }
 
