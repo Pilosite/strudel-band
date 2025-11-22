@@ -342,10 +342,10 @@ stack(
     </div>
 
     <!-- SCRIPTS -->
-    <!-- Strudel.js - TidalCycles for the browser -->
+    <!-- Strudel.js - TidalCycles for the browser (using esm.sh for proper ESM resolution) -->
     <script type="module">
-        import { controls, repl } from 'https://unpkg.com/@strudel/core@latest';
-        import { initAudioOnFirstClick, getAudioContext, webaudioOutput } from 'https://unpkg.com/@strudel/webaudio@latest';
+        import { controls, repl } from 'https://esm.sh/@strudel/core@1.1.0';
+        import { initAudioOnFirstClick, getAudioContext, webaudioOutput } from 'https://esm.sh/@strudel/webaudio@1.1.0';
 
         // Initialize Strudel on first user interaction
         initAudioOnFirstClick();
