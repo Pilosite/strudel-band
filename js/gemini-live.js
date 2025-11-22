@@ -81,36 +81,29 @@ class GeminiLive {
      */
     sendSetup(agentConfig) {
         const systemInstruction = agentConfig?.systemPrompt ||
-            `You are a music-aware AI that listens to live audio and provides musical analysis.
-When you hear audio, describe:
-- The energy level (calm, building, intense)
-- The rhythm feel (tempo, groove)
-- What musical elements you hear
-- Suggestions for what could happen next
+            `You are a DJ/producer AI that listens to live music and helps create patterns.
+You can hear the audio playing. When you analyze it, describe:
+- Energy level (calm, building, intense)
+- What you hear (drums, bass, melody, etc)
+- Suggest what should happen next
 
-Keep responses short and musical. Respond like a musician would.`;
+Keep responses SHORT (1-2 sentences). Be musical and creative.`;
 
+        // Gemini Live API uses camelCase
         const setup = {
             setup: {
                 model: `models/${CONFIG.GEMINI_MODEL}`,
-                generation_config: {
-                    response_modalities: ["TEXT"], // We want text analysis, not audio response
-                    speech_config: {
-                        voice_config: {
-                            prebuilt_voice_config: {
-                                voice_name: "Puck"
-                            }
-                        }
-                    }
+                generationConfig: {
+                    responseModalities: ["TEXT"]
                 },
-                system_instruction: {
+                systemInstruction: {
                     parts: [{ text: systemInstruction }]
                 }
             }
         };
 
         this.send(setup);
-        console.log('[GeminiLive] Setup sent');
+        console.log('[GeminiLive] Setup sent:', JSON.stringify(setup));
     }
 
     /**
@@ -122,11 +115,12 @@ Keep responses short and musical. Respond like a musician would.`;
             return;
         }
 
+        // Gemini Live API format for realtime audio input
         const message = {
-            realtime_input: {
-                media_chunks: [{
+            realtimeInput: {
+                mediaChunks: [{
                     data: base64Audio,
-                    mime_type: "audio/pcm;rate=16000"
+                    mimeType: "audio/pcm;rate=16000"
                 }]
             }
         };
@@ -143,17 +137,19 @@ Keep responses short and musical. Respond like a musician would.`;
             return;
         }
 
+        // Gemini Live API format for client content
         const message = {
-            client_content: {
+            clientContent: {
                 turns: [{
                     role: "user",
                     parts: [{ text: text }]
                 }],
-                turn_complete: true
+                turnComplete: true
             }
         };
 
         this.send(message);
+        console.log('[GeminiLive] Sent text:', text);
     }
 
     /**

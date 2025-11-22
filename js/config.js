@@ -7,8 +7,9 @@ const CONFIG = {
     GEMINI_API_KEY: '', // Set via UI or environment
 
     // Gemini Live API
-    GEMINI_MODEL: 'gemini-2.5-flash-preview-native-audio-dialog',
-    GEMINI_WS_URL: 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent',
+    // Use v1alpha for direct API key auth, model must be gemini-2.0-flash-exp for Live API
+    GEMINI_MODEL: 'gemini-2.0-flash-exp',
+    GEMINI_WS_URL: 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent',
 
     // Audio Settings
     AUDIO: {
