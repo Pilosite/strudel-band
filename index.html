@@ -336,38 +336,32 @@ stack(
     </div>
 
     <!-- SCRIPTS -->
-    <!-- Strudel.js 1.7.0 - Official ESM builds from unpkg -->
+    <!-- Strudel.js 1.7.0 - Official ESM builds (MUST load before app scripts) -->
     <script type="module">
-        // Correct ESM paths for Strudel 1.7.0
-        import { startAudio, loadDirtSamples, getAudioContext } from 'https://unpkg.com/@strudel/webaudio@1.7.0/dist/webaudio.esm.js';
-        import { mini } from 'https://unpkg.com/@strudel/mini@1.7.0/dist/mini.esm.js';
-        import { repl } from 'https://unpkg.com/@strudel/core@1.7.0/dist/core.esm.js';
+        import { startAudio, loadDirtSamples }
+            from "https://unpkg.com/@strudel/webaudio@1.7.0/dist/webaudio.esm.js";
 
-        console.log('[Strudel 1.7.0] Initializing...');
+        import { mini }
+            from "https://unpkg.com/@strudel/mini@1.7.0/dist/mini.esm.js";
 
-        // Load Dirt samples (includes TR-808, TR-909, etc.)
-        try {
-            await loadDirtSamples();
-            console.log('[Strudel] Dirt samples loaded (TR-808, TR-909, bd, sd, hh, etc.)');
-            window.drumsLoaded = true;
-        } catch (e) {
-            console.warn('[Strudel] Sample loading failed:', e);
-            window.drumsLoaded = false;
-        }
+        import { repl }
+            from "https://unpkg.com/@strudel/core@1.7.0/dist/core.esm.js";
 
-        // Start audio engine with mini-notation transpiler
-        startAudio({ transpilers: [mini] });
-        console.log('[Strudel] Audio started with mini-notation support');
+        console.log("[Strudel] Loading official Dirt samples…");
+        await loadDirtSamples();
+        window.drumsLoaded = true;
 
-        // Create REPL instance
-        const strudelRepl = repl();
+        console.log("[Strudel] Starting audio…");
+        await startAudio({
+            transpilers: [mini]
+        });
 
-        // Expose to window for our engine
-        window.strudelRepl = strudelRepl;
-        window.getStrudelAudioContext = getAudioContext;
+        // Create the REPL
+        console.log("[Strudel] Creating REPL…");
+        window.strudelRepl = repl();
         window.strudelReady = true;
 
-        console.log('[Strudel 1.7.0] Ready! window.strudelRepl available');
+        console.log("🎉 Strudel fully loaded and ready!");
     </script>
 
     <script src="js/debug.js"></script>
