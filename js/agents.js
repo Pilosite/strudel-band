@@ -92,12 +92,13 @@ Generate Strudel (TidalCycles) code for live music performance.
 
 CRITICAL RULES:
 1. Output ONLY valid Strudel code, no markdown, no explanation, no comments
-2. Use ONLY these synth sounds: sine, sawtooth, square, triangle
-3. ALWAYS use m("pattern").note().s("synthname") syntax - m() parses mini-notation
-4. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
-5. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
-6. Keep patterns simple and musical
-7. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
+2. For SYNTHS: use m("pattern").note().s("synthname") - synths: sine, sawtooth, square, triangle
+3. For DRUMS: use s("bd sd hh").bank("RolandTR909") - sounds: bd (kick), sd (snare), hh (hihat), cp (clap), rim, tom, crash
+4. Use stack() to layer multiple patterns: stack(drums, hihat, percussion)
+5. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
+6. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
+7. Keep patterns simple and musical
+8. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
 
 BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
 - 1 bar: use .fast(4) - pattern loops 4x per cycle
@@ -106,11 +107,9 @@ BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
 - 8 bars: use .slow(2) - pattern spans 2 cycles
 - 16 bars: use .slow(4) - pattern spans 4 cycles
 
-If user asks for "1 mesure", "2 bars", etc., apply the correct modifier!
-
 EXAMPLES:
-- Drums 1 bar: s("bd hh sd hh").fast(4).gain(0.8)
-- Drums 4 bars: s("bd hh sd hh").gain(0.8)
+- Drums basic: stack(s("bd ~ sd ~").bank("RolandTR909").gain(0.9), s("hh*8").bank("RolandTR909").gain(0.3))
+- Drums funky: stack(s("bd ~ [sd ~] [~ bd]").bank("RolandTR909").gain(0.9), s("hh*8").bank("RolandTR909").gain(0.3), s("~ ~ cp ~").bank("RolandTR909").gain(0.4))
 - Bass 8 bars: m("c2 eb2 g2 bb2 c3 bb2 g2 eb2").note().s("sawtooth").slow(2).lpf(800).gain(0.5)
 - Lead 16-bar solo: m("c4 e4 g4 b4 c5 d5 e5 g5 a5 g5 e5 d5 c5 b4 g4 e4").note().s("square").slow(4).lpf(2000).gain(0.5)
 - Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
@@ -183,11 +182,11 @@ Generate your pattern now:`;
 
         const patterns = {
             drums: {
-                default: 's("bd hh sd hh").gain(0.8)',
-                funky: 's("bd hh [sd hh] [hh bd]").gain(0.8)',
-                minimal: 's("bd ~ ~ ~ sd ~ ~ ~").gain(0.6)',
-                intense: 's("bd*4 sd*2 hh*8").gain(0.9)',
-                ambient: 's("~ bd ~ sd").room(0.6).gain(0.5)'
+                default: 'stack(s("bd ~ sd ~").bank("RolandTR909").gain(0.9), s("hh*8").bank("RolandTR909").gain(0.3))',
+                funky: 'stack(s("bd ~ [sd ~] [~ bd]").bank("RolandTR909").gain(0.9), s("hh*8").bank("RolandTR909").gain(0.3), s("~ ~ cp ~").bank("RolandTR909").gain(0.4))',
+                minimal: 'stack(s("bd ~ ~ ~ sd ~ ~ ~").bank("RolandTR909").gain(0.7), s("hh*4").bank("RolandTR909").gain(0.2))',
+                intense: 'stack(s("bd*2 ~ sd ~ bd ~ sd bd").bank("RolandTR909").gain(0.95), s("hh*16").bank("RolandTR909").gain(0.4), s("cp*2").bank("RolandTR909").gain(0.5))',
+                ambient: 'stack(s("~ bd ~ sd").bank("RolandTR909").room(0.6).gain(0.5), s("hh*4").bank("RolandTR909").room(0.5).gain(0.15))'
             },
             bass: {
                 default: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
@@ -409,7 +408,7 @@ class Band {
     initAgents() {
         // Default starting patterns using m() to parse mini-notation
         const defaultPatterns = {
-            drums: 's("bd hh sd hh").gain(0.8)',
+            drums: 'stack(s("bd ~ sd ~").bank("RolandTR909").gain(0.9), s("hh*8").bank("RolandTR909").gain(0.3))',
             bass: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
             lead: 'm("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)',
             pads: 'm("<c3 e3 g3>").note().s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
