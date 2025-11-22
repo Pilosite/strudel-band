@@ -86,24 +86,25 @@ class Agent {
         const systemPrompt = `You are ${this.fullName}, a virtual musician in an AI band.
 
 ROLE: ${this.config.role}
-SAMPLES/SYNTHS: ${this.config.samples}
 PERSONALITY: ${this.config.personality}
 
 Generate Strudel (TidalCycles) code for live music performance.
 
-RULES:
-1. Output ONLY valid Strudel code, no markdown, no explanation
-2. Use s() for samples, note() for synths
-3. Keep patterns musical and interesting
-4. Match the requested style/mood
-5. Code should be self-contained and playable
+CRITICAL RULES:
+1. Output ONLY valid Strudel code, no markdown, no explanation, no comments
+2. Use ONLY these synth sounds: sine, sawtooth, square, triangle
+3. Syntax: note("pattern").s("synthname").effects()
+4. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
+5. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
+6. Keep patterns simple and musical
+7. DO NOT use: mask, stutter, slide, pan, or any other undefined functions
 
 EXAMPLES:
-- Drums: s("bd hh sn hh").fast(2)
-- Bass: note("c2 [~ c2] eb2 g2").s("bass").lpf(800)
-- Lead: note("<c4 e4 g4 b4>").s("sawtooth").lpf(2000).decay(0.3)
-- Pads: note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2)
-- FX: s("glitch*4").gain(0.3).room(0.8)`;
+- Drums: note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8)
+- Bass: note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2).gain(0.5)
+- Lead: note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)
+- Pads: note("<c3 e3 g3>").s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
+- FX: note("c5*4").s("sine").decay(0.05).delay(0.5).gain(0.2)`;
 
         const userPrompt = `${prompt}${contextInfo}
 
@@ -172,17 +173,17 @@ Generate your pattern now:`;
 
         const patterns = {
             drums: {
-                default: 'stack(note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8), note("~ c3 ~ c3").s("white").decay(0.1).lpf(4000).gain(0.5))',
-                funky: 'stack(note("c1 ~ [c1 c1] ~").s("sine").decay(0.1).gain(0.8), note("~ c3 [~ c3] c3").s("white").decay(0.1).lpf(5000).gain(0.5))',
+                default: 'note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8)',
+                funky: 'note("c1 ~ [c1 c1] ~").s("sine").decay(0.1).gain(0.8)',
                 minimal: 'note("c1 ~ ~ ~ c1 ~ ~ ~").s("sine").decay(0.2).gain(0.6)',
-                intense: 'stack(note("c1*4").s("sine").decay(0.08).gain(0.9), note("c3*2").s("white").decay(0.05).lpf(6000).gain(0.6))',
+                intense: 'note("c1*4").s("sine").decay(0.08).gain(0.9)',
                 ambient: 'note("~ c1 ~ ~").s("sine").decay(0.4).room(0.8).gain(0.4)'
             },
             bass: {
-                default: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2)',
-                funky: 'note("c2*2 ~ eb2 [g2 c3]").s("sawtooth").lpf(600).decay(0.15)',
-                minimal: 'note("c2 ~ ~ c2 ~ ~ ~ ~").s("sine").lpf(400).decay(0.3)',
-                intense: 'note("c2*4 eb2*2 g2*2").s("square").lpf(1200).gain(0.7)',
+                default: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
+                funky: 'note("c2*2 ~ eb2 [g2 c3]").s("sawtooth").lpf(600).decay(0.15).gain(0.5)',
+                minimal: 'note("c2 ~ ~ c2 ~ ~ ~ ~").s("sine").lpf(400).decay(0.3).gain(0.5)',
+                intense: 'note("c2*4 eb2*2 g2*2").s("square").lpf(1200).gain(0.6)',
                 ambient: 'note("<c2 g2>").s("sine").lpf(300).attack(0.5).release(2).gain(0.4)'
             },
             lead: {
@@ -200,10 +201,10 @@ Generate your pattern now:`;
                 ambient: 'note("<c3 e3 g3 b3>").s("sine").lpf(600).attack(2).release(6).room(0.9).gain(0.25)'
             },
             fx: {
-                default: 'note("c5*4").s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.15)',
+                default: 'note("c5*4").s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.2)',
                 funky: 'note("c6*4").s("square").decay(0.02).delay(0.25).gain(0.2)',
-                minimal: 'note("~ ~ ~ c5").s("sine").decay(0.3).room(0.8).gain(0.1)',
-                intense: 'note("c5*8").s("white").decay(0.02).lpf(8000).gain(0.3)',
+                minimal: 'note("~ ~ ~ c5").s("sine").decay(0.3).room(0.8).gain(0.15)',
+                intense: 'note("c5*8").s("triangle").decay(0.02).lpf(8000).gain(0.3)',
                 ambient: 'note("<c6 g6>").s("sine").attack(1).release(4).room(0.9).gain(0.15)'
             }
         };
@@ -348,14 +349,13 @@ class Band {
      * Initialize all agents
      */
     initAgents() {
-        // Default starting patterns (using synths, no external samples needed)
+        // Default starting patterns (using correct Strudel note().s() syntax)
         const defaultPatterns = {
-            // Kick on 1 and 3, snare on 2 and 4, hihat on offbeats
-            drums: 'stack(note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8), note("~ c3 ~ c3").s("white").decay(0.1).lpf(4000).gain(0.5), note("~ c6 ~ c6").s("white").decay(0.03).hpf(8000).gain(0.3))',
-            bass: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2)',
+            drums: 'note("c1 c1 c1 c1").s("sine").decay(0.15).gain(0.8)',
+            bass: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
             lead: 'note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)',
-            pads: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2).gain(0.3)',
-            fx: 'note("c5*4").s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.15)'
+            pads: 'note("<c3 e3 g3>").s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
+            fx: 'note("c5*4").s("sine").decay(0.05).delay(0.5).gain(0.2)'
         };
 
         Object.entries(CONFIG.AGENTS).forEach(([id, config]) => {

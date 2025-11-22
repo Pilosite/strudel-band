@@ -31,7 +31,8 @@ class StrudelEngine {
         console.log('[StrudelEngine] init() called');
         return new Promise((resolve, reject) => {
             let checkCount = 0;
-            const maxChecks = 3;
+            const maxChecks = 10; // More attempts for module loading
+            const checkInterval = 300; // Check every 300ms
 
             // Check what Strudel globals are available
             const checkStrudel = () => {
@@ -44,17 +45,21 @@ class StrudelEngine {
                     k === 'evaluate' ||
                     k === 'hush' ||
                     k === 'repl' ||
-                    k === 'strudelRepl'
+                    k === 'strudelRepl' ||
+                    k === 'strudelReady'
                 );
                 if (strudelGlobals.length > 0) {
                     console.log('[StrudelEngine] Found globals:', strudelGlobals);
                 }
 
-                // Check for our custom Strudel module setup
-                if (typeof window.strudelRepl !== 'undefined') {
-                    console.log('[StrudelEngine] Found window.strudelRepl!');
+                // Check for our custom Strudel module setup (wait for ready flag)
+                if (window.strudelReady && typeof window.strudelRepl !== 'undefined') {
+                    console.log('[StrudelEngine] Found window.strudelRepl and ready!');
                     this.setupStrudelFromModule();
                     resolve(true);
+                } else if (typeof window.strudelRepl !== 'undefined') {
+                    console.log('[StrudelEngine] Found window.strudelRepl (waiting for ready)...');
+                    setTimeout(checkStrudel, checkInterval);
                 } else if (typeof window.strudel !== 'undefined') {
                     console.log('[StrudelEngine] Found window.strudel!');
                     this.setupStrudelFunctions();
@@ -65,7 +70,7 @@ class StrudelEngine {
                     this.hush = window.hush;
                     resolve(true);
                 } else if (checkCount < maxChecks) {
-                    setTimeout(checkStrudel, 500);
+                    setTimeout(checkStrudel, checkInterval);
                 } else {
                     console.warn('[StrudelEngine] Strudel not found, using mock mode');
                     this.setupMockMode();
@@ -74,8 +79,8 @@ class StrudelEngine {
             };
 
             // Start checking after a short delay for script to load
-            console.log('[StrudelEngine] Starting Strudel detection in 500ms...');
-            setTimeout(checkStrudel, 500);
+            console.log('[StrudelEngine] Starting Strudel detection in 200ms...');
+            setTimeout(checkStrudel, 200);
         });
     }
 

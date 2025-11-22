@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STRUDEL BAND - AI Jam Session</title>
-    <script src="https://unpkg.com/@strudel/embed@latest"></script>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -345,12 +344,16 @@ stack(
 
         console.log('[Strudel] Initializing...');
 
-        // Initialize Strudel on first user interaction
+        // Initialize audio on first user interaction
         initAudioOnFirstClick();
 
-        // Register synth sounds (sawtooth, sine, square, triangle, etc.)
-        registerSynthSounds();
-        console.log('[Strudel] Synth sounds registered');
+        // Register synth sounds (sine, sawtooth, square, triangle) - MUST await this
+        try {
+            await registerSynthSounds();
+            console.log('[Strudel] Synth sounds registered: sine, sawtooth, square, triangle');
+        } catch (e) {
+            console.warn('[Strudel] Error registering synth sounds:', e);
+        }
 
         // Load default samples from strudel with error handling
         try {
@@ -380,7 +383,9 @@ stack(
         window.s = s;
         window.sound = sound;
 
-        console.log('[Strudel] Module loaded with pattern functions: stack, sequence, cat, note, s, sound');
+        // Mark Strudel as ready
+        window.strudelReady = true;
+        console.log('[Strudel] Module loaded and ready with pattern functions: stack, sequence, cat, note, s, sound');
     </script>
 
     <script src="js/debug.js"></script>
