@@ -355,19 +355,22 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load samples - dough-samples JSON points to ritchse/tidal-drum-machines for audio files
+        // Load samples - JSON from dough-samples, audio files from ritchse/tidal-drum-machines
         try {
-            console.log('[Strudel] Loading drum machines from dough-samples...');
+            console.log('[Strudel] Loading drum machines + Dirt-Samples...');
 
-            const base = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
-            const dirt = 'https://raw.githubusercontent.com/tidalcycles/Dirt-Samples/master';
+            // JSON metadata is in dough-samples
+            const jsonBase = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
+            // Actual .wav files are in ritchse/tidal-drum-machines
+            const machinesBase = 'https://raw.githubusercontent.com/ritchse/tidal-drum-machines/main/machines/';
+            // Dirt-Samples
+            const dirtBase = 'https://raw.githubusercontent.com/tidalcycles/Dirt-Samples/master/';
 
             await Promise.all([
-                // Drum machines - JSON has _base pointing to ritchse/tidal-drum-machines
-                // MUST use 1-argument form to let Strudel use the _base in JSON!
-                samples(`${base}tidal-drum-machines.json`),
+                // Drum machines - JSON from dough-samples, audio from ritchse
+                samples(`${jsonBase}tidal-drum-machines.json`, machinesBase),
                 // Dirt-Samples for basic sounds (bd, sd, hh, etc.)
-                samples(`${dirt}/strudel.json`),
+                samples(`${dirtBase}strudel.json`, dirtBase),
             ]);
 
             console.log('[Strudel] Drum machines + Dirt-Samples loaded!');
