@@ -26,24 +26,30 @@ class AudioCapture {
      * Initialize audio capture from Strudel output
      */
     async init() {
+        console.log('[AudioCapture] init() called');
         try {
             // Get or create audio context
+            console.log('[AudioCapture] Creating AudioContext...');
             this.audioContext = new (window.AudioContext || window.webkitAudioContext)({
                 sampleRate: 48000 // Strudel's output rate
             });
+            console.log('[AudioCapture] AudioContext created, state:', this.audioContext.state);
 
             // Create analyser for visualization
+            console.log('[AudioCapture] Creating analyser node...');
             this.analyserNode = this.audioContext.createAnalyser();
             this.analyserNode.fftSize = 256;
             this.analyserNode.smoothingTimeConstant = 0.8;
 
             // Create destination for capturing
+            console.log('[AudioCapture] Creating media stream destination...');
             this.mediaStreamDestination = this.audioContext.createMediaStreamDestination();
 
-            console.log('[AudioCapture] Initialized');
+            console.log('[AudioCapture] Initialized successfully');
             return true;
         } catch (error) {
             console.error('[AudioCapture] Init failed:', error);
+            console.error('[AudioCapture] Error stack:', error.stack);
             return false;
         }
     }

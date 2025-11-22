@@ -24,27 +24,49 @@ class App {
      * Initialize the application
      */
     async init() {
-        console.log('[App] Initializing Strudel Band...');
+        console.log('[App] ========== INIT START ==========');
+        console.log('[App] CONFIG state at init:', {
+            GEMINI_API_KEY: CONFIG.GEMINI_API_KEY ? 'set (' + CONFIG.GEMINI_API_KEY.slice(0, 8) + '...)' : 'empty',
+            GEMINI_MODEL: CONFIG.GEMINI_MODEL,
+            GEMINI_WS_URL: CONFIG.GEMINI_WS_URL
+        });
+        console.log('[App] localStorage state:', {
+            gemini_api_key: localStorage.getItem('gemini_api_key') ? 'exists' : 'empty',
+            gemini_model: localStorage.getItem('gemini_model') || 'not set',
+            anthropic_api_key: localStorage.getItem('anthropic_api_key') ? 'exists' : 'empty'
+        });
 
         // Initialize UI
+        console.log('[App] Step 1: Initializing UI...');
         this.ui.init();
+        console.log('[App] Step 1: UI initialized');
 
         // Initialize Strudel
+        console.log('[App] Step 2: Initializing Strudel...');
         await this.strudelEngine.init();
+        console.log('[App] Step 2: Strudel initialized');
 
         // Initialize audio capture
+        console.log('[App] Step 3: Initializing audio capture...');
         await this.audioCapture.init();
+        console.log('[App] Step 3: Audio capture initialized');
 
         // Setup callbacks
+        console.log('[App] Step 4: Setting up callbacks...');
         this.setupCallbacks();
+        console.log('[App] Step 4: Callbacks set up');
 
         // Setup event listeners
+        console.log('[App] Step 5: Setting up event listeners...');
         this.setupEventListeners();
+        console.log('[App] Step 5: Event listeners set up');
 
         // Check for API key
+        console.log('[App] Step 6: Checking API keys...');
         this.checkAPIKey();
+        console.log('[App] Step 6: API keys checked');
 
-        console.log('[App] Initialization complete!');
+        console.log('[App] ========== INIT COMPLETE ==========');
         this.ui.addChatMessage('system', 'Strudel Band ready. Let\'s jam!');
     }
 
@@ -180,41 +202,69 @@ class App {
      * Check for API key in URL or prompt
      */
     checkAPIKey() {
+        console.log('[App] checkAPIKey() called');
+
         // Check URL params
         const params = new URLSearchParams(window.location.search);
+        console.log('[App] URL params:', window.location.search);
+
         const apiKey = params.get('apiKey') || params.get('key');
+        console.log('[App] Anthropic key from URL:', apiKey ? 'found' : 'not found');
 
         if (apiKey) {
             window.ANTHROPIC_API_KEY = apiKey;
             this.ui.updateConnectionStatus('online');
-            console.log('[App] API key found in URL');
+            console.log('[App] Anthropic API key set from URL');
         } else {
             // Check localStorage
             const storedKey = localStorage.getItem('anthropic_api_key');
+            console.log('[App] Anthropic key from localStorage:', storedKey ? 'found' : 'not found');
             if (storedKey) {
                 window.ANTHROPIC_API_KEY = storedKey;
                 this.ui.updateConnectionStatus('online');
+                console.log('[App] Anthropic API key set from localStorage');
             } else {
+                console.log('[App] No Anthropic key found anywhere');
                 this.ui.addChatMessage('system',
                     'No API key found. Using demo patterns. Add ?key=YOUR_KEY to URL for full AI generation.');
             }
         }
 
         // Also check for Gemini key - but don't block if init fails
-        const geminiKey = params.get('geminiKey') || localStorage.getItem('gemini_api_key');
+        console.log('[App] Checking Gemini key...');
+        const geminiKeyFromURL = params.get('geminiKey');
+        const geminiKeyFromStorage = localStorage.getItem('gemini_api_key');
+        console.log('[App] Gemini key from URL:', geminiKeyFromURL ? 'found (' + geminiKeyFromURL.slice(0, 8) + '...)' : 'not found');
+        console.log('[App] Gemini key from localStorage:', geminiKeyFromStorage ? 'found (' + geminiKeyFromStorage.slice(0, 8) + '...)' : 'not found');
+
+        const geminiKey = geminiKeyFromURL || geminiKeyFromStorage;
+
         if (geminiKey) {
+            console.log('[App] Using Gemini key:', geminiKey.slice(0, 8) + '...');
             try {
+                console.log('[App] Setting CONFIG.GEMINI_API_KEY...');
                 CONFIG.GEMINI_API_KEY = geminiKey;
+                console.log('[App] CONFIG.GEMINI_API_KEY set successfully');
+
+                console.log('[App] Creating GeminiAgentManager...');
                 this.geminiManager = new GeminiAgentManager(geminiKey);
+                console.log('[App] GeminiAgentManager created');
+
                 // Don't await init - let it run in background
-                this.geminiManager.init().catch(e => {
-                    console.warn('[App] Gemini init failed:', e);
-                });
-                console.log('[App] Gemini manager created');
+                console.log('[App] Starting Gemini init (non-blocking)...');
+                this.geminiManager.init()
+                    .then(() => console.log('[App] Gemini init completed successfully'))
+                    .catch(e => console.warn('[App] Gemini init failed:', e));
+
             } catch (e) {
-                console.warn('[App] Failed to create Gemini manager:', e);
+                console.error('[App] Failed to create Gemini manager:', e);
+                console.error('[App] Error stack:', e.stack);
             }
+        } else {
+            console.log('[App] No Gemini key found - listening mode disabled');
         }
+
+        console.log('[App] checkAPIKey() completed');
     }
 
     /**
@@ -470,9 +520,11 @@ class App {
      * Open settings modal
      */
     openSettings() {
+        console.log('[App] Opening settings modal');
         const modal = document.getElementById('settingsModal');
         const anthropicInput = document.getElementById('anthropicKey');
         const geminiInput = document.getElementById('geminiKey');
+        const geminiModelSelect = document.getElementById('geminiModel');
         const tempoInput = document.getElementById('tempoSetting');
 
         // Load current values
@@ -481,6 +533,10 @@ class App {
         }
         if (geminiInput) {
             geminiInput.value = localStorage.getItem('gemini_api_key') || '';
+            console.log('[App] Loaded Gemini key from localStorage:', geminiInput.value ? 'exists' : 'empty');
+        }
+        if (geminiModelSelect) {
+            geminiModelSelect.value = localStorage.getItem('gemini_model') || CONFIG.GEMINI_MODEL;
         }
         if (tempoInput) {
             tempoInput.value = this.strudelEngine.tempo || 120;
@@ -503,7 +559,15 @@ class App {
         console.log('[App] saveSettings called');
         const anthropicKey = document.getElementById('anthropicKey')?.value.trim();
         const geminiKey = document.getElementById('geminiKey')?.value.trim();
+        const geminiModel = document.getElementById('geminiModel')?.value;
         const tempo = parseInt(document.getElementById('tempoSetting')?.value) || 120;
+
+        console.log('[App] Saving settings:', {
+            anthropicKey: anthropicKey ? 'set' : 'empty',
+            geminiKey: geminiKey ? 'set' : 'empty',
+            geminiModel,
+            tempo
+        });
 
         // Save Anthropic key
         if (anthropicKey) {
@@ -513,17 +577,30 @@ class App {
             this.ui.addChatMessage('system', 'Anthropic API key saved!');
         }
 
-        // Save Gemini key
+        // Save Gemini settings
         if (geminiKey) {
             localStorage.setItem('gemini_api_key', geminiKey);
             CONFIG.GEMINI_API_KEY = geminiKey;
+            console.log('[App] Gemini key saved to localStorage and CONFIG');
+        }
 
-            // Initialize Gemini manager if not already
-            if (!this.geminiManager) {
+        if (geminiModel) {
+            localStorage.setItem('gemini_model', geminiModel);
+            CONFIG.GEMINI_MODEL = geminiModel;
+            console.log('[App] Gemini model set to:', geminiModel);
+        }
+
+        // Initialize or re-initialize Gemini manager with new settings
+        if (geminiKey) {
+            try {
+                console.log('[App] Creating new GeminiAgentManager...');
                 this.geminiManager = new GeminiAgentManager(geminiKey);
                 this.geminiManager.init();
+                this.ui.addChatMessage('system', `Gemini configured! Model: ${geminiModel}`);
+            } catch (e) {
+                console.error('[App] Failed to init Gemini:', e);
+                this.ui.addChatMessage('system', `Gemini init error: ${e.message}`);
             }
-            this.ui.addChatMessage('system', 'Gemini API key saved! Listening mode enabled.');
         }
 
         // Save tempo

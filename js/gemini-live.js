@@ -5,6 +5,7 @@
 
 class GeminiLive {
     constructor(apiKey) {
+        console.log('[GeminiLive] Constructor called');
         this.apiKey = apiKey;
         this.ws = null;
         this.isConnected = false;
@@ -21,12 +22,15 @@ class GeminiLive {
 
         // Session state
         this.currentAgent = null;
+        console.log('[GeminiLive] Instance created');
     }
 
     /**
      * Connect to Gemini Live API via WebSocket
      */
     async connect(agentConfig = null) {
+        console.log('[GeminiLive] connect() called');
+
         if (this.isConnected) {
             console.log('[GeminiLive] Already connected');
             return true;
@@ -40,6 +44,7 @@ class GeminiLive {
         return new Promise((resolve, reject) => {
             try {
                 const wsUrl = `${CONFIG.GEMINI_WS_URL}?key=${this.apiKey}`;
+                console.log('[GeminiLive] Connecting to WebSocket:', wsUrl.replace(this.apiKey, 'API_KEY_HIDDEN'));
                 this.ws = new WebSocket(wsUrl);
 
                 this.ws.onopen = () => {
@@ -230,6 +235,7 @@ Keep responses SHORT (1-2 sentences). Be musical and creative.`;
  */
 class GeminiAgentManager {
     constructor(apiKey) {
+        console.log('[GeminiAgentManager] Constructor called with key:', apiKey ? apiKey.slice(0, 8) + '...' : 'none');
         this.apiKey = apiKey;
         this.sessions = new Map(); // agentId -> GeminiLive instance
         this.sharedSession = null;  // Single session that all agents share
@@ -240,16 +246,22 @@ class GeminiAgentManager {
      * Initialize the manager
      */
     async init() {
+        console.log('[GeminiAgentManager] init() called');
+        console.log('[GeminiAgentManager] API key:', this.apiKey ? this.apiKey.slice(0, 8) + '...' : 'none');
+
         if (!this.apiKey) {
             console.warn('[GeminiAgentManager] No API key - listening mode disabled');
             return false;
         }
 
         if (this.useSharedSession) {
+            console.log('[GeminiAgentManager] Creating shared GeminiLive session...');
             this.sharedSession = new GeminiLive(this.apiKey);
+            console.log('[GeminiAgentManager] Shared session created');
             return true;
         }
 
+        console.log('[GeminiAgentManager] Init complete (multi-session mode)');
         return true;
     }
 

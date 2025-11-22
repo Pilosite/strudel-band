@@ -1,6 +1,7 @@
 /**
  * STRUDEL BAND - Configuration
  */
+console.log('[Config] Loading config.js...');
 
 const CONFIG = {
     // API Keys (should be replaced or fetched securely)
@@ -165,3 +166,33 @@ Respond in JSON format:
 };
 
 // Note: CONFIG is not frozen so API keys can be set dynamically
+
+// Auto-load settings from localStorage on startup
+(function loadSavedConfig() {
+    console.log('[Config] Checking localStorage for saved settings...');
+    try {
+        const savedGeminiKey = localStorage.getItem('gemini_api_key');
+        const savedGeminiModel = localStorage.getItem('gemini_model');
+
+        if (savedGeminiKey) {
+            CONFIG.GEMINI_API_KEY = savedGeminiKey;
+            console.log('[Config] Loaded Gemini API key from localStorage:', savedGeminiKey.slice(0, 8) + '...');
+        } else {
+            console.log('[Config] No Gemini API key in localStorage');
+        }
+
+        if (savedGeminiModel) {
+            CONFIG.GEMINI_MODEL = savedGeminiModel;
+            console.log('[Config] Loaded Gemini model from localStorage:', savedGeminiModel);
+        }
+    } catch (e) {
+        console.error('[Config] Error loading from localStorage:', e);
+    }
+})();
+
+console.log('[Config] config.js loaded successfully');
+console.log('[Config] Final CONFIG state:', {
+    GEMINI_API_KEY: CONFIG.GEMINI_API_KEY ? CONFIG.GEMINI_API_KEY.slice(0, 8) + '...' : 'empty',
+    GEMINI_MODEL: CONFIG.GEMINI_MODEL,
+    GEMINI_WS_URL: CONFIG.GEMINI_WS_URL
+});

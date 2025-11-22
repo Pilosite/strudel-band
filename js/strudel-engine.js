@@ -28,34 +28,45 @@ class StrudelEngine {
      * Initialize Strudel engine
      */
     async init() {
+        console.log('[StrudelEngine] init() called');
         return new Promise((resolve, reject) => {
+            let checkCount = 0;
+
             // Wait for Strudel embed to load
             const checkStrudel = () => {
+                checkCount++;
+                console.log(`[StrudelEngine] Checking for Strudel (attempt ${checkCount})...`);
+
                 if (typeof window.strudel !== 'undefined') {
+                    console.log('[StrudelEngine] Found window.strudel!');
                     this.setupStrudelFunctions();
                     resolve(true);
                 } else if (typeof window.evaluate !== 'undefined') {
                     // Functions might be global
+                    console.log('[StrudelEngine] Found window.evaluate!');
                     this.evaluate = window.evaluate;
                     this.hush = window.hush;
                     resolve(true);
                 } else {
-                    // Keep checking
-                    setTimeout(checkStrudel, 100);
+                    // Keep checking (max 50 attempts = 5 seconds)
+                    if (checkCount < 50) {
+                        setTimeout(checkStrudel, 100);
+                    }
                 }
             };
 
             // Start checking after a short delay
+            console.log('[StrudelEngine] Starting Strudel detection in 500ms...');
             setTimeout(checkStrudel, 500);
 
-            // Timeout after 10 seconds
+            // Timeout after 5 seconds (reduced from 10)
             setTimeout(() => {
                 if (!this.evaluate) {
-                    console.warn('[StrudelEngine] Strudel not loaded, using mock mode');
+                    console.warn('[StrudelEngine] Strudel not loaded after 5s, using mock mode');
                     this.setupMockMode();
                     resolve(true);
                 }
-            }, 10000);
+            }, 5000);
         });
     }
 
