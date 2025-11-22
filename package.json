@@ -1,0 +1,11 @@
+{
+  "name": "strudel-band",
+  "version": "1.0.0",
+  "description": "AI-powered collaborative music jam session",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . -l 3000"
+  },
+  "keywords": ["strudel", "live-coding", "ai", "music", "gemini"],
+  "license": "MIT"
+}
