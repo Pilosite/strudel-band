@@ -285,9 +285,10 @@ class StrudelEngine {
         }
 
         // Check for basic Strudel patterns
-        const hasPattern = /^(s|note|sound|stack|sequence|cat|fastcat|slowcat)\s*\(/.test(code.trim()) ||
+        const hasPattern = /^(s|m|mini|note|sound|stack|sequence|cat|fastcat|slowcat)\s*\(/.test(code.trim()) ||
                           code.includes('.s(') ||
-                          code.includes('.note(');
+                          code.includes('.note(') ||
+                          code.includes('m(');
 
         if (!hasPattern) {
             return { valid: false, error: 'Code does not appear to be valid Strudel' };
