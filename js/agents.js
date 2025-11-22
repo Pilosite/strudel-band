@@ -165,46 +165,46 @@ Generate your pattern now:`;
     }
 
     /**
-     * Demo patterns when API is not available
+     * Demo patterns when API is not available (using synths, no samples needed)
      */
     getDemoPattern(prompt) {
         const lowerPrompt = prompt.toLowerCase();
 
         const patterns = {
             drums: {
-                default: 's("bd hh sn hh").fast(2)',
-                funky: 's("bd*2 [~ hh]*4 sn [hh cp]").fast(1)',
-                minimal: 's("bd ~ ~ ~ bd ~ ~ ~").slow(2)',
-                intense: 's("bd*4 sn*2 hh*8 cp*2").fast(2)',
-                ambient: 's("~ bd ~ ~").slow(4).room(0.8)'
+                default: 'stack(note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8), note("~ c3 ~ c3").s("white").decay(0.1).lpf(4000).gain(0.5))',
+                funky: 'stack(note("c1 ~ [c1 c1] ~").s("sine").decay(0.1).gain(0.8), note("~ c3 [~ c3] c3").s("white").decay(0.1).lpf(5000).gain(0.5))',
+                minimal: 'note("c1 ~ ~ ~ c1 ~ ~ ~").s("sine").decay(0.2).gain(0.6)',
+                intense: 'stack(note("c1*4").s("sine").decay(0.08).gain(0.9), note("c3*2").s("white").decay(0.05).lpf(6000).gain(0.6))',
+                ambient: 'note("~ c1 ~ ~").s("sine").decay(0.4).room(0.8).gain(0.4)'
             },
             bass: {
-                default: 'note("c2 [~ c2] eb2 g2").s("bass").lpf(800)',
-                funky: 'note("c2*2 ~ eb2 [g2 c3]").s("sawtooth").lpf(600).decay(0.2)',
-                minimal: 'note("c2 ~ ~ c2 ~ ~ ~ ~").s("sine").lpf(400)',
-                intense: 'note("c2*4 eb2*2 g2*2").s("square").lpf(1200).distort(0.3)',
-                ambient: 'note("<c2 g2>").s("sine").lpf(300).attack(0.5).release(2)'
+                default: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2)',
+                funky: 'note("c2*2 ~ eb2 [g2 c3]").s("sawtooth").lpf(600).decay(0.15)',
+                minimal: 'note("c2 ~ ~ c2 ~ ~ ~ ~").s("sine").lpf(400).decay(0.3)',
+                intense: 'note("c2*4 eb2*2 g2*2").s("square").lpf(1200).gain(0.7)',
+                ambient: 'note("<c2 g2>").s("sine").lpf(300).attack(0.5).release(2).gain(0.4)'
             },
             lead: {
-                default: 'note("<c4 e4 g4 b4>").s("sawtooth").lpf(2000).decay(0.3)',
-                funky: 'note("[c4 ~ e4 ~]*2").s("square").lpf(3000).decay(0.1)',
-                minimal: 'note("c5 ~ ~ ~ e5 ~ ~ ~").s("sine").delay(0.5)',
-                intense: 'note("c4*4 e4*4 g4*4 b4*4").s("supersaw").lpf(4000)',
-                ambient: 'note("<c5 e5 g5>").s("sine").lpf(1500).attack(1).release(3).delay(0.6)'
+                default: 'note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)',
+                funky: 'note("[c4 ~ e4 ~]*2").s("square").lpf(3000).decay(0.1).gain(0.5)',
+                minimal: 'note("c5 ~ ~ ~ e5 ~ ~ ~").s("sine").delay(0.5).gain(0.3)',
+                intense: 'note("c4*4 e4*4 g4*4 b4*4").s("sawtooth").lpf(4000).gain(0.5)',
+                ambient: 'note("<c5 e5 g5>").s("sine").lpf(1500).attack(1).release(3).delay(0.6).gain(0.3)'
             },
             pads: {
-                default: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2)',
-                funky: 'note("<c3 eb3 g3 bb3>").s("sawtooth").lpf(800).attack(0.2)',
-                minimal: 'note("<c3 g3>").s("sine").lpf(400).attack(2).release(4)',
-                intense: 'note("<c3 eb3 g3 b3>").s("supersaw").lpf(2000)',
-                ambient: 'note("<c3 e3 g3 b3>").s("sine").lpf(600).attack(2).release(6).room(0.9)'
+                default: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2).gain(0.3)',
+                funky: 'note("<c3 eb3 g3 bb3>").s("sawtooth").lpf(800).attack(0.2).gain(0.4)',
+                minimal: 'note("<c3 g3>").s("sine").lpf(400).attack(2).release(4).gain(0.3)',
+                intense: 'note("<c3 eb3 g3 b3>").s("sawtooth").lpf(2000).gain(0.5)',
+                ambient: 'note("<c3 e3 g3 b3>").s("sine").lpf(600).attack(2).release(6).room(0.9).gain(0.25)'
             },
             fx: {
-                default: 's("glitch*2").gain(0.3).room(0.5)',
-                funky: 's("cp*4").delay(0.25).gain(0.2)',
-                minimal: 's("~ ~ ~ hh:3").room(0.8).gain(0.1)',
-                intense: 's("noise*8 glitch*4").lpf(2000).gain(0.4)',
-                ambient: 's("wind").slow(4).room(0.9).gain(0.2)'
+                default: 'note("c5*4").s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.15)',
+                funky: 'note("c6*4").s("square").decay(0.02).delay(0.25).gain(0.2)',
+                minimal: 'note("~ ~ ~ c5").s("sine").decay(0.3).room(0.8).gain(0.1)',
+                intense: 'note("c5*8").s("white").decay(0.02).lpf(8000).gain(0.3)',
+                ambient: 'note("<c6 g6>").s("sine").attack(1).release(4).room(0.9).gain(0.15)'
             }
         };
 
@@ -348,13 +348,14 @@ class Band {
      * Initialize all agents
      */
     initAgents() {
-        // Default starting patterns
+        // Default starting patterns (using synths, no external samples needed)
         const defaultPatterns = {
-            drums: 's("bd hh sn hh").fast(2)',
-            bass: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800)',
-            lead: 'note("<c4 e4 g4 b4>").s("sawtooth").lpf(2000).decay(0.3)',
-            pads: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2)',
-            fx: 's("hh*4").delay(0.5).room(0.5).gain(0.2)'
+            // Kick on 1 and 3, snare on 2 and 4, hihat on offbeats
+            drums: 'stack(note("c1 ~ c1 ~").s("sine").decay(0.15).gain(0.8), note("~ c3 ~ c3").s("white").decay(0.1).lpf(4000).gain(0.5), note("~ c6 ~ c6").s("white").decay(0.03).hpf(8000).gain(0.3))',
+            bass: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800).decay(0.2)',
+            lead: 'note("<c4 e4 g4 b4>").s("square").lpf(2000).decay(0.3).gain(0.4)',
+            pads: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2).gain(0.3)',
+            fx: 'note("c5*4").s("triangle").decay(0.05).delay(0.5).room(0.5).gain(0.15)'
         };
 
         Object.entries(CONFIG.AGENTS).forEach(([id, config]) => {

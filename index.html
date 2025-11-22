@@ -343,11 +343,22 @@ stack(
         import { mini } from 'https://esm.sh/@strudel/mini@1.1.0';
         import { initAudioOnFirstClick, getAudioContext, webaudioOutput, registerSynthSounds, samples } from 'https://esm.sh/@strudel/webaudio@1.1.0';
 
+        console.log('[Strudel] Initializing...');
+
         // Initialize Strudel on first user interaction
         initAudioOnFirstClick();
 
-        // Load default samples
-        samples('https://strudel.cc/samples.json');
+        // Register synth sounds (sawtooth, sine, square, triangle, etc.)
+        registerSynthSounds();
+        console.log('[Strudel] Synth sounds registered');
+
+        // Load default samples from strudel with error handling
+        try {
+            await samples('https://strudel.cc/piano.json', 'github:tidalcycles/dirt-samples');
+            console.log('[Strudel] Samples loaded successfully');
+        } catch (e) {
+            console.warn('[Strudel] Could not load samples, using synths only:', e.message);
+        }
 
         // Create REPL instance with mini-notation support
         const strudelRepl = repl({
