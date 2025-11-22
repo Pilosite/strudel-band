@@ -100,7 +100,7 @@ CRITICAL RULES:
 7. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
 
 EXAMPLES:
-- Drums: m("c2 g3 e2 g3").note().s("square").lpf(400).decay(0.08).gain(0.8)  (c2=kick, e2=low tom, g3=hihat)
+- Drums: s("bd hh sd hh").gain(0.8)  (bd=kick, sd=snare, hh=hihat, cp=clap, oh=open hat)
 - Bass: m("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)
 - Lead: m("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)
 - Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
@@ -173,11 +173,11 @@ Generate your pattern now:`;
 
         const patterns = {
             drums: {
-                default: 'm("c2 g3 e2 g3").note().s("square").lpf(400).decay(0.08).gain(0.8)',
-                funky: 'm("c2 g3 [e2 g3] [g3 c2]").note().s("square").lpf(500).decay(0.06).gain(0.8)',
-                minimal: 'm("c2 ~ ~ ~ e2 ~ ~ ~").note().s("sine").lpf(300).decay(0.1).gain(0.6)',
-                intense: 'm("c2*4 e2*2 g3*8").note().s("square").lpf(600).decay(0.04).gain(0.9)',
-                ambient: 'm("~ c2 ~ e2").note().s("sine").lpf(200).decay(0.15).room(0.6).gain(0.5)'
+                default: 's("bd hh sd hh").gain(0.8)',
+                funky: 's("bd hh [sd hh] [hh bd]").gain(0.8)',
+                minimal: 's("bd ~ ~ ~ sd ~ ~ ~").gain(0.6)',
+                intense: 's("bd*4 sd*2 hh*8").gain(0.9)',
+                ambient: 's("~ bd ~ sd").room(0.6).gain(0.5)'
             },
             bass: {
                 default: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
@@ -351,7 +351,7 @@ class Band {
     initAgents() {
         // Default starting patterns using m() to parse mini-notation
         const defaultPatterns = {
-            drums: 'm("c2 g3 e2 g3").note().s("square").lpf(400).decay(0.08).gain(0.8)',
+            drums: 's("bd hh sd hh").gain(0.8)',
             bass: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
             lead: 'm("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)',
             pads: 'm("<c3 e3 g3>").note().s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
