@@ -492,6 +492,7 @@ class App {
      * Save settings
      */
     saveSettings() {
+        console.log('[App] saveSettings called');
         const anthropicKey = document.getElementById('anthropicKey')?.value.trim();
         const geminiKey = document.getElementById('geminiKey')?.value.trim();
         const tempo = parseInt(document.getElementById('tempoSetting')?.value) || 120;
