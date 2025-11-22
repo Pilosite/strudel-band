@@ -100,7 +100,7 @@ CRITICAL RULES:
 7. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
 
 EXAMPLES:
-- Drums: m("c2 ~ c2 ~").note().s("sine").decay(0.1).gain(0.9)
+- Drums: s("bd hh sd hh").gain(0.9)  (use bd=kick, sd=snare, hh=hihat, oh=open hat, cp=clap)
 - Bass: m("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)
 - Lead: m("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)
 - Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
@@ -173,11 +173,11 @@ Generate your pattern now:`;
 
         const patterns = {
             drums: {
-                default: 'm("c2 ~ c2 ~").note().s("sine").decay(0.1).gain(0.9)',
-                funky: 'm("c2 ~ [c2 c2] ~").note().s("sine").decay(0.08).gain(0.9)',
-                minimal: 'm("c2 ~ ~ ~ c2 ~ ~ ~").note().s("sine").decay(0.15).gain(0.7)',
-                intense: 'm("c2*4").note().s("sine").decay(0.05).gain(1)',
-                ambient: 'm("~ c2 ~ ~").note().s("sine").decay(0.3).room(0.5).gain(0.6)'
+                default: 's("bd hh sd hh").gain(0.9)',
+                funky: 's("bd hh [sd hh] [hh bd]").gain(0.9)',
+                minimal: 's("bd ~ ~ ~ sd ~ ~ ~").gain(0.7)',
+                intense: 's("bd*4 sd*2 hh*8").gain(1)',
+                ambient: 's("~ bd ~ sd").room(0.6).gain(0.5)'
             },
             bass: {
                 default: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
@@ -351,7 +351,7 @@ class Band {
     initAgents() {
         // Default starting patterns using m() to parse mini-notation
         const defaultPatterns = {
-            drums: 'm("c2 c2 c2 c2").note().s("sine").decay(0.1).gain(0.9)',
+            drums: 's("bd hh sd hh").gain(0.9)',
             bass: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
             lead: 'm("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)',
             pads: 'm("<c3 e3 g3>").note().s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',

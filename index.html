@@ -355,12 +355,22 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load default samples from strudel with error handling
+        // Load drum samples from strudel CDN
         try {
-            await samples('https://strudel.cc/piano.json', 'github:tidalcycles/dirt-samples');
-            console.log('[Strudel] Samples loaded successfully');
+            // Load the default drum kit samples
+            await samples({
+                bd: 'https://strudel.cc/samples/tidal/bd/BT0A0A7.wav',
+                sd: 'https://strudel.cc/samples/tidal/sd/ST0T0S3.wav',
+                hh: 'https://strudel.cc/samples/tidal/hh/000_hh3closedhh.wav',
+                oh: 'https://strudel.cc/samples/tidal/oh/000_oh3telemagic.wav',
+                cp: 'https://strudel.cc/samples/tidal/cp/HANDCLP0.wav',
+                mt: 'https://strudel.cc/samples/tidal/mt/000_MT3_mtdanlog.wav',
+            });
+            console.log('[Strudel] Drum samples loaded: bd, sd, hh, oh, cp, mt');
+            window.drumsLoaded = true;
         } catch (e) {
-            console.warn('[Strudel] Could not load samples, using synths only:', e.message);
+            console.warn('[Strudel] Could not load drum samples:', e.message);
+            window.drumsLoaded = false;
         }
 
         // Create REPL instance with mini-notation support
