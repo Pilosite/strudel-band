@@ -367,7 +367,8 @@ stack(
 
             await Promise.all([
                 // Drum machines (RolandTR808, RolandTR707, AkaiLinn, etc.)
-                samples(`${dm}/tidal-drum-machines.json`, `${dm}/machines/`),
+                // NOTE: The file is machines.json, NOT tidal-drum-machines.json!
+                samples(`${dm}/machines.json`, `${dm}/machines/`),
                 // Dirt-Samples (bd, sd, hh, cp, etc.)
                 samples(`${ds}/strudel.json`, `${ds}/`),
             ]);
