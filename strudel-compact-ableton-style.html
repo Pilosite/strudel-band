@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Jam - Compact View</title>
+    <script src="https://unpkg.com/@strudel/embed@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* HEADER COMPACT */
+        .header {
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 50px;
+        }
+        
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00ff88;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .transport-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .transport-btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #e0e0e0;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .transport-btn:hover {
+            background: #3a3a3a;
+            border-color: #00ff88;
+        }
+        
+        .transport-btn.play {
+            background: #00ff88;
+            color: #0a0a0a;
+            font-weight: bold;
+        }
+        
+        .transport-btn.stop {
+            background: #ff4444;
+            color: white;
+        }
+        
+        /* MAIN LAYOUT */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 50px);
+            overflow: hidden;
+        }
+        
+        /* SIDEBAR DIRECTOR */
+        .director-panel {
+            width: 280px;
+            background: #161616;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        
+        .director-title {
+            color: #bb86fc;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .quick-presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        
+        .preset-btn {
+            background: #252525;
+            border: 1px solid #3a3a3a;
+            color: #bb86fc;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .preset-btn:hover {
+            background: #2d2d2d;
+            border-color: #bb86fc;
+        }
+        
+        #bandPrompt {
+            width: 100%;
+            height: 120px;
+            background: #0a0a0a;
+            border: 1px solid #3a3a3a;
+            border-radius: 4px;
+            padding: 8px;
+            color: #bb86fc;
+            font-family: monospace;
+            font-size: 11px;
+            resize: none;
+            margin-bottom: 8px;
+        }
+        
+        .conduct-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #8a2be2 0%, #bb86fc 100%);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .conduct-btn:hover {
+            opacity: 0.9;
+        }
+        
+        /* TRACKS AREA */
+        .tracks-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* TRACK ROW */
+        .track {
+            display: grid;
+            grid-template-columns: 80px 1fr 200px 120px;
+            border-bottom: 1px solid #2a2a2a;
+            height: 110px;
+            background: #1a1a1a;
+            transition: all 0.2s;
+        }
+        
+        .track:hover {
+            background: #202020;
+        }
+        
+        .track.drums { border-left: 3px solid #ff6b6b; }
+        .track.bass { border-left: 3px solid #4ecdc4; }
+        .track.lead { border-left: 3px solid #ffe66d; }
+        .track.pads { border-left: 3px solid #a8e6cf; }
+        .track.fx { border-left: 3px solid #ff8b94; }
+        
+        /* TRACK HEADER */
+        .track-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 10px;
+            border-right: 1px solid #2a2a2a;
+        }
+        
+        .track-name {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        
+        .track.drums .track-name { color: #ff6b6b; }
+        .track.bass .track-name { color: #4ecdc4; }
+        .track.lead .track-name { color: #ffe66d; }
+        .track.pads .track-name { color: #a8e6cf; }
+        .track.fx .track-name { color: #ff8b94; }
+        
+        .track-controls-mini {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .mini-btn {
+            width: 30px;
+            height: 24px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .mini-btn:hover {
+            background: #3a3a3a;
+        }
+        
+        .mini-btn.active {
+            background: #00ff88;
+            color: #0a0a0a;
+            border-color: #00ff88;
+        }
+        
+        .mini-btn.muted {
+            background: #ff4444;
+            color: white;
+            border-color: #ff4444;
+        }
+        
+        /* TIMELINE AREA */
+        .track-timeline {
+            padding: 10px;
+            border-right: 1px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: hidden;
+        }
+        
+        .timeline-viz {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 6px;
+            font-family: monospace;
+            font-size: 9px;
+            height: 50px;
+            overflow: hidden;
+            white-space: pre;
+        }
+        
+        .track.drums .timeline-viz { color: #ff6b6b; border-color: #ff6b6b33; }
+        .track.bass .timeline-viz { color: #4ecdc4; border-color: #4ecdc433; }
+        .track.lead .timeline-viz { color: #ffe66d; border-color: #ffe66d33; }
+        .track.pads .timeline-viz { color: #a8e6cf; border-color: #a8e6cf33; }
+        .track.fx .timeline-viz { color: #ff8b94; border-color: #ff8b9433; }
+        
+        .pattern-display {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 6px;
+            font-family: monospace;
+            font-size: 9px;
+            height: 40px;
+            overflow: hidden;
+            color: #888;
+        }
+        
+        /* PROMPT AREA */
+        .track-prompt-area {
+            padding: 10px;
+            border-right: 1px solid #2a2a2a;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .track-prompt {
+            width: 100%;
+            height: 55px;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            padding: 6px;
+            font-family: monospace;
+            font-size: 10px;
+            resize: none;
+        }
+        
+        .track.drums .track-prompt { color: #ff6b6b; border-color: #ff6b6b33; }
+        .track.bass .track-prompt { color: #4ecdc4; border-color: #4ecdc433; }
+        .track.lead .track-prompt { color: #ffe66d; border-color: #ffe66d33; }
+        .track.pads .track-prompt { color: #a8e6cf; border-color: #a8e6cf33; }
+        .track.fx .track-prompt { color: #ff8b94; border-color: #ff8b9433; }
+        
+        .gen-btn {
+            width: 100%;
+            padding: 6px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            color: #e0e0e0;
+            transition: all 0.2s;
+        }
+        
+        .gen-btn:hover {
+            background: #3a3a3a;
+        }
+        
+        .track.drums .gen-btn:hover { border-color: #ff6b6b; }
+        .track.bass .gen-btn:hover { border-color: #4ecdc4; }
+        .track.lead .gen-btn:hover { border-color: #ffe66d; }
+        .track.pads .gen-btn:hover { border-color: #a8e6cf; }
+        .track.fx .gen-btn:hover { border-color: #ff8b94; }
+        
+        /* ACTION AREA */
+        .track-actions {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            justify-content: center;
+        }
+        
+        .status-indicator {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            text-align: center;
+            background: #2a2a2a;
+            border: 1px solid #444;
+        }
+        
+        .status-indicator.active {
+            background: #00ff8822;
+            color: #00ff88;
+            border-color: #00ff88;
+        }
+        
+        .status-indicator.generating {
+            background: #bb86fc22;
+            color: #bb86fc;
+            border-color: #bb86fc;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 6px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #aaa;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #3a3a3a;
+        }
+        
+        /* LOADING OVERLAY */
+        .loading-overlay {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(138, 43, 226, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo">
+            <span>🎵</span>
+            <span>Multi-Agent Jam Session</span>
+        </div>
+        <div class="transport-controls">
+            <button class="transport-btn play" onclick="playAll()">▶ PLAY</button>
+            <button class="transport-btn stop" onclick="stopAll()">⏹ STOP</button>
+            <button class="transport-btn" onclick="soloMode()">🎧 Solo</button>
+        </div>
+    </div>
+    
+    <!-- MAIN LAYOUT -->
+    <div class="main-container">
+        <!-- DIRECTOR SIDEBAR -->
+        <div class="director-panel">
+            <div class="director-title">🎼 DIRECTEUR DE GROUPE</div>
+            
+            <div class="quick-presets">
+                <div class="preset-btn" onclick="useBandCommand('Ambient spatial lent')">
+                    🌌 Ambient
+                </div>
+                <div class="preset-btn" onclick="useBandCommand('Passage funky énergique')">
+                    ⚡ Funky
+                </div>
+                <div class="preset-btn" onclick="useBandCommand('Minimal techno hypnotique')">
+                    🔁 Minimal
+                </div>
+                <div class="preset-btn" onclick="useBandCommand('Break intense')">
+                    💥 Break
+                </div>
+                <div class="preset-btn" onclick="useBandCommand('Build-up progressif')">
+                    📈 Build
+                </div>
+                <div class="preset-btn" onclick="useBandCommand('Expérimental glitchy')">
+                    🎲 Glitch
+                </div>
+            </div>
+            
+            <textarea id="bandPrompt" placeholder="Instruction pour tout le groupe...
+
+Ex: 'Tout le monde, passage downtempo trip-hop'"></textarea>
+            
+            <button class="conduct-btn" onclick="conductBand()">
+                🎼 DIRIGER LE GROUPE
+            </button>
+        </div>
+        
+        <!-- TRACKS -->
+        <div class="tracks-container">
+            <!-- DRUMS TRACK -->
+            <div class="track drums">
+                <div class="track-header">
+                    <div class="track-name">🥁 DRUMS</div>
+                    <div class="track-controls-mini">
+                        <div class="mini-btn" onclick="toggleMute('drums')" title="Mute">M</div>
+                        <div class="mini-btn" onclick="soloAgent('drums')" title="Solo">S</div>
+                    </div>
+                </div>
+                
+                <div class="track-timeline">
+                    <div class="timeline-viz" id="drums-timeline">|----|----|----|----|
+Waiting...</div>
+                    <div class="pattern-display" id="drums-code">// Pattern code...</div>
+                </div>
+                
+                <div class="track-prompt-area">
+                    <textarea class="track-prompt" id="drums-prompt" 
+                        placeholder="Ex: Break avec des fills"></textarea>
+                    <button class="gen-btn" onclick="generateAgent('drums')">
+                        🎵 Générer
+                    </button>
+                </div>
+                
+                <div class="track-actions">
+                    <div class="status-indicator" id="drums-status">Idle</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="clearAgent('drums')">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- BASS TRACK -->
+            <div class="track bass">
+                <div class="track-header">
+                    <div class="track-name">🎸 BASS</div>
+                    <div class="track-controls-mini">
+                        <div class="mini-btn" onclick="toggleMute('bass')" title="Mute">M</div>
+                        <div class="mini-btn" onclick="soloAgent('bass')" title="Solo">S</div>
+                    </div>
+                </div>
+                
+                <div class="track-timeline">
+                    <div class="timeline-viz" id="bass-timeline">|----|----|----|----|
+Waiting...</div>
+                    <div class="pattern-display" id="bass-code">// Pattern code...</div>
+                </div>
+                
+                <div class="track-prompt-area">
+                    <textarea class="track-prompt" id="bass-prompt" 
+                        placeholder="Ex: Groove funky avec slides"></textarea>
+                    <button class="gen-btn" onclick="generateAgent('bass')">
+                        🎵 Générer
+                    </button>
+                </div>
+                
+                <div class="track-actions">
+                    <div class="status-indicator" id="bass-status">Idle</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="clearAgent('bass')">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LEAD TRACK -->
+            <div class="track lead">
+                <div class="track-header">
+                    <div class="track-name">🎹 LEAD</div>
+                    <div class="track-controls-mini">
+                        <div class="mini-btn" onclick="toggleMute('lead')" title="Mute">M</div>
+                        <div class="mini-btn" onclick="soloAgent('lead')" title="Solo">S</div>
+                    </div>
+                </div>
+                
+                <div class="track-timeline">
+                    <div class="timeline-viz" id="lead-timeline">|----|----|----|----|
+Waiting...</div>
+                    <div class="pattern-display" id="lead-code">// Pattern code...</div>
+                </div>
+                
+                <div class="track-prompt-area">
+                    <textarea class="track-prompt" id="lead-prompt" 
+                        placeholder="Ex: Arpèges avec delay"></textarea>
+                    <button class="gen-btn" onclick="generateAgent('lead')">
+                        🎵 Générer
+                    </button>
+                </div>
+                
+                <div class="track-actions">
+                    <div class="status-indicator" id="lead-status">Idle</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="clearAgent('lead')">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PADS TRACK -->
+            <div class="track pads">
+                <div class="track-header">
+                    <div class="track-name">🌊 PADS</div>
+                    <div class="track-controls-mini">
+                        <div class="mini-btn" onclick="toggleMute('pads')" title="Mute">M</div>
+                        <div class="mini-btn" onclick="soloAgent('pads')" title="Solo">S</div>
+                    </div>
+                </div>
+                
+                <div class="track-timeline">
+                    <div class="timeline-viz" id="pads-timeline">|----|----|----|----|
+Waiting...</div>
+                    <div class="pattern-display" id="pads-code">// Pattern code...</div>
+                </div>
+                
+                <div class="track-prompt-area">
+                    <textarea class="track-prompt" id="pads-prompt" 
+                        placeholder="Ex: Nappes atmosphériques"></textarea>
+                    <button class="gen-btn" onclick="generateAgent('pads')">
+                        🎵 Générer
+                    </button>
+                </div>
+                
+                <div class="track-actions">
+                    <div class="status-indicator" id="pads-status">Idle</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="clearAgent('pads')">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FX TRACK -->
+            <div class="track fx">
+                <div class="track-header">
+                    <div class="track-name">✨ FX</div>
+                    <div class="track-controls-mini">
+                        <div class="mini-btn" onclick="toggleMute('fx')" title="Mute">M</div>
+                        <div class="mini-btn" onclick="soloAgent('fx')" title="Solo">S</div>
+                    </div>
+                </div>
+                
+                <div class="track-timeline">
+                    <div class="timeline-viz" id="fx-timeline">|----|----|----|----|
+Waiting...</div>
+                    <div class="pattern-display" id="fx-code">// Pattern code...</div>
+                </div>
+                
+                <div class="track-prompt-area">
+                    <textarea class="track-prompt" id="fx-prompt" 
+                        placeholder="Ex: Textures glitchy"></textarea>
+                    <button class="gen-btn" onclick="generateAgent('fx')">
+                        🎵 Générer
+                    </button>
+                </div>
+                
+                <div class="track-actions">
+                    <div class="status-indicator" id="fx-status">Idle</div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="clearAgent('fx')">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="globalLoading">
+        <div class="spinner"></div>
+        <div>Génération en cours...</div>
+    </div>
+    
+    <script>
+        // État global
+        const agents = {
+            drums: { code: '', muted: false, active: false },
+            bass: { code: '', muted: false, active: false },
+            lead: { code: '', muted: false, active: false },
+            pads: { code: '', muted: false, active: false },
+            fx: { code: '', muted: false, active: false }
+        };
+        
+        const agentProfiles = {
+            drums: {
+                name: "Le Batteur",
+                role: "Rythme et groove principal",
+                samples: "bd, sn, hh, cp, rim, tom, crash, ride",
+                specialty: "Patterns rythmiques, breaks, fills"
+            },
+            bass: {
+                name: "Le Bassiste", 
+                role: "Fondation harmonique et groove",
+                samples: "bass, sawtooth, square, triangle",
+                specialty: "Lignes de basse, sub-bass, grooves profonds"
+            },
+            lead: {
+                name: "Le Lead",
+                role: "Mélodies et hooks",
+                samples: "piano, sawtooth, square, sine",
+                specialty: "Arpèges, mélodies, solos"
+            },
+            pads: {
+                name: "Les Pads",
+                role: "Atmosphère et texture",
+                samples: "sawtooth, sine, strings",
+                specialty: "Nappes, ambiances, textures longues"
+            },
+            fx: {
+                name: "Les Effets",
+                role: "Couleur sonore et surprises",
+                samples: "noise, samples variés, percussion",
+                specialty: "Textures, glitches, éléments expérimentaux"
+            }
+        };
+        
+        function useBandCommand(cmd) {
+            document.getElementById('bandPrompt').value = cmd;
+        }
+        
+        async function conductBand() {
+            const prompt = document.getElementById('bandPrompt').value.trim();
+            if (!prompt) {
+                alert('Entre une instruction !');
+                return;
+            }
+            
+            const loading = document.getElementById('globalLoading');
+            loading.classList.add('active');
+            
+            try {
+                const agentInstructions = await generateBandInstructions(prompt);
+                
+                const promises = Object.keys(agents).map(agentId => 
+                    generateAgentCode(agentId, agentInstructions[agentId])
+                );
+                
+                await Promise.all(promises);
+                
+                setTimeout(() => playAll(), 500);
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur: ' + error.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+        
+        async function generateBandInstructions(globalPrompt) {
+            const response = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "claude-sonnet-4-20250514",
+                    max_tokens: 1500,
+                    messages: [{
+                        role: "user",
+                        content: `Groupe de 5 musiciens AI :
+🥁 DRUMS - ${agentProfiles.drums.role}
+🎸 BASS - ${agentProfiles.bass.role}
+🎹 LEAD - ${agentProfiles.lead.role}
+🌊 PADS - ${agentProfiles.pads.role}
+✨ FX - ${agentProfiles.fx.role}
+
+Instruction: "${globalPrompt}"
+
+JSON uniquement :
+{"drums": "...", "bass": "...", "lead": "...", "pads": "...", "fx": "..."}`
+                    }]
+                })
+            });
+            
+            const data = await response.json();
+            let text = data.content[0].text.trim();
+            text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            return JSON.parse(text);
+        }
+        
+        async function generateAgent(agentId) {
+            const prompt = document.getElementById(`${agentId}-prompt`).value.trim();
+            if (!prompt) {
+                alert('Entre une instruction !');
+                return;
+            }
+            await generateAgentCode(agentId, prompt);
+        }
+        
+        async function generateAgentCode(agentId, prompt) {
+            const status = document.getElementById(`${agentId}-status`);
+            status.textContent = 'Génération...';
+            status.classList.add('generating');
+            
+            try {
+                const profile = agentProfiles[agentId];
+                
+                const activeAgents = Object.keys(agents)
+                    .filter(id => id !== agentId && agents[id].active && agents[id].code)
+                    .map(id => `${agentProfiles[id].name}: ${agents[id].code.substring(0, 80)}...`);
+                
+                const contextInfo = activeAgents.length > 0 
+                    ? `\n\nAUTRES ACTIFS:\n${activeAgents.join('\n')}\n\nAdapte-toi!`
+                    : '';
+                
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 1500,
+                        messages: [{
+                            role: "user",
+                            content: `Tu es ${profile.name} - ${profile.specialty}
+
+RÔLE: ${profile.role}
+SAMPLES: ${profile.samples}
+
+INSTRUCTION: "${prompt}"${contextInfo}
+
+Génère UN pattern Strudel. Code uniquement, pas de markdown.
+Commence par s() ou note().`
+                        }]
+                    })
+                });
+                
+                const data = await response.json();
+                let code = data.content[0].text.trim();
+                code = code.replace(/```[a-z]*\n?/g, '').replace(/```\n?/g, '').trim();
+                
+                agents[agentId].code = code;
+                agents[agentId].active = true;
+                
+                document.getElementById(`${agentId}-code`).textContent = code;
+                
+                const timeline = generateTimeline(code, agentId);
+                document.getElementById(`${agentId}-timeline`).textContent = timeline;
+                
+                status.textContent = 'Active';
+                status.classList.remove('generating');
+                status.classList.add('active');
+                
+            } catch (error) {
+                console.error('Erreur:', error);
+                status.textContent = 'Error';
+                status.classList.remove('generating');
+                alert(`Erreur ${agentId}: ${error.message}`);
+            }
+        }
+        
+        function generateTimeline(code) {
+            let timeline = '|----|----|----|----|';
+            
+            if (code.includes('bd')) timeline += '\nKick:  X   X   X   X';
+            if (code.includes('sn') || code.includes('cp')) timeline += '\nSnare:   X   X   X   X';
+            if (code.includes('hh')) timeline += '\nHH: x x x x x x x x';
+            if (code.includes('note')) timeline += '\nMel:  ♪ ♪ ♪ ♪ ♪ ♪';
+            
+            return timeline;
+        }
+        
+        function playAll() {
+            try {
+                const activeCodes = Object.keys(agents)
+                    .filter(id => agents[id].active && agents[id].code && !agents[id].muted)
+                    .map(id => agents[id].code);
+                
+                if (activeCodes.length === 0) {
+                    alert('Aucun pattern actif !');
+                    return;
+                }
+                
+                const fullPattern = activeCodes.length === 1 
+                    ? activeCodes[0]
+                    : `stack(\n${activeCodes.map(c => `  ${c}`).join(',\n')}\n)`;
+                
+                evaluate(fullPattern);
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        }
+        
+        function stopAll() {
+            hush();
+        }
+        
+        function toggleMute(agentId) {
+            agents[agentId].muted = !agents[agentId].muted;
+            const btn = event.target;
+            
+            if (agents[agentId].muted) {
+                btn.classList.add('muted');
+            } else {
+                btn.classList.remove('muted');
+            }
+            
+            if (agents[agentId].active) playAll();
+        }
+        
+        function soloAgent(agentId) {
+            if (!agents[agentId].code) {
+                alert('Pas de pattern !');
+                return;
+            }
+            
+            try {
+                evaluate(agents[agentId].code);
+            } catch (error) {
+                alert('Erreur: ' + error.message);
+            }
+        }
+        
+        function clearAgent(agentId) {
+            agents[agentId].code = '';
+            agents[agentId].active = false;
+            document.getElementById(`${agentId}-code`).textContent = '// Pattern code...';
+            document.getElementById(`${agentId}-timeline`).textContent = '|----|----|----|----|\\nWaiting...';
+            document.getElementById(`${agentId}-status`).textContent = 'Idle';
+            document.getElementById(`${agentId}-status`).classList.remove('active', 'generating');
+        }
+        
+        function soloMode() {
+            alert('Clique sur S sur une track pour solo !');
+        }
+        
+        // Raccourcis
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                playAll();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === '.') {
+                e.preventDefault();
+                stopAll();
+            }
+        });
+    </script>
+</body>
+</html>
