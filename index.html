@@ -355,31 +355,31 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load drum machines + Dirt samples
+        // Load drum machines + Dirt samples from dough-samples
+        // Using 2-argument form: samples(jsonUrl, basePath)
         try {
-            // Load from multiple sources
-            console.log('[Strudel] Loading samples...');
+            const base = 'https://raw.githubusercontent.com/felixroos/dough-samples/main';
+            console.log('[Strudel] Loading samples from dough-samples...');
 
-            // 1. Basic Dirt-Samples (bd, sd, hh, cp)
-            await samples('github:tidalcycles/Dirt-Samples/master');
-            console.log('[Strudel] Dirt-Samples loaded');
+            await Promise.all([
+                // Drum machines (RolandTR909, RolandTR808, etc.)
+                samples(
+                    `${base}/tidal-drum-machines.json`,
+                    `${base}/tidal-drum-machines/`
+                ),
 
-            // 2. Drum machines (RolandTR909, TR808, etc.)
-            await samples('github:ritchse/tidal-drum-machines/main/machines');
-            console.log('[Strudel] Drum machines loaded');
+                // Dirt-Samples (bd, sd, hh, cp, etc.)
+                samples(
+                    `${base}/Dirt-Samples.json`,
+                    `${base}/Dirt-Samples/`
+                ),
+            ]);
 
+            console.log('[Strudel] dough-samples (drum-machines + Dirt-Samples) loaded!');
             window.drumsLoaded = true;
         } catch (e) {
             console.warn('[Strudel] Sample loading failed:', e.message);
-            // Try fallback - just basic Dirt-Samples
-            try {
-                await samples('github:tidalcycles/Dirt-Samples/master');
-                console.log('[Strudel] Fallback: Dirt-Samples only');
-                window.drumsLoaded = true;
-            } catch (e2) {
-                console.error('[Strudel] All sample loading failed');
-                window.drumsLoaded = false;
-            }
+            window.drumsLoaded = false;
         }
 
         // Create REPL instance with mini-notation support
