@@ -31,13 +31,15 @@ class StrudelEngine {
         console.log('[StrudelEngine] init() called');
         return new Promise((resolve, reject) => {
             let checkCount = 0;
-            const maxChecks = 10; // More attempts for module loading
-            const checkInterval = 300; // Check every 300ms
+            const maxChecks = 50; // More attempts for Strudel Web loading
+            const checkInterval = 100; // Check every 100ms
 
             // Check what Strudel globals are available
             const checkStrudel = () => {
                 checkCount++;
-                console.log(`[StrudelEngine] Checking for Strudel (attempt ${checkCount}/${maxChecks})...`);
+                if (checkCount % 10 === 1) {
+                    console.log(`[StrudelEngine] Checking for Strudel (attempt ${checkCount}/${maxChecks})...`);
+                }
 
                 // Log available strudel-related globals for debugging
                 const strudelGlobals = Object.keys(window).filter(k =>
@@ -48,12 +50,20 @@ class StrudelEngine {
                     k === 'strudelRepl' ||
                     k === 'strudelReady'
                 );
-                if (strudelGlobals.length > 0) {
+                if (strudelGlobals.length > 0 && checkCount % 10 === 1) {
                     console.log('[StrudelEngine] Found globals:', strudelGlobals);
                 }
 
+                // Check for Strudel Web globals (evaluate, hush)
+                if (typeof window.evaluate === 'function' && typeof window.hush === 'function') {
+                    console.log('[StrudelEngine] Found Strudel Web globals (evaluate, hush)!');
+                    this.evaluate = window.evaluate;
+                    this.hush = window.hush;
+                    console.log('[StrudelEngine] Strudel Web ready!');
+                    resolve(true);
+                }
                 // Check for our custom Strudel module setup (wait for ready flag)
-                if (window.strudelReady && typeof window.strudelRepl !== 'undefined') {
+                else if (window.strudelReady && typeof window.strudelRepl !== 'undefined') {
                     console.log('[StrudelEngine] Found window.strudelRepl and ready!');
                     this.setupStrudelFromModule();
                     resolve(true);
@@ -64,15 +74,10 @@ class StrudelEngine {
                     console.log('[StrudelEngine] Found window.strudel!');
                     this.setupStrudelFunctions();
                     resolve(true);
-                } else if (typeof window.evaluate !== 'undefined') {
-                    console.log('[StrudelEngine] Found window.evaluate!');
-                    this.evaluate = window.evaluate;
-                    this.hush = window.hush;
-                    resolve(true);
                 } else if (checkCount < maxChecks) {
                     setTimeout(checkStrudel, checkInterval);
                 } else {
-                    console.warn('[StrudelEngine] Strudel not found, using mock mode');
+                    console.warn('[StrudelEngine] Strudel not found after 5s, using mock mode');
                     this.setupMockMode();
                     resolve(true);
                 }

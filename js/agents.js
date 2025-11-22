@@ -93,13 +93,13 @@ Generate Strudel (TidalCycles) code for live music performance.
 CRITICAL RULES:
 1. Output ONLY valid Strudel code, no markdown, no explanation, no comments
 2. For SYNTHS: use m("pattern").note().s("synthname") - synths: sine, sawtooth, square, triangle
-3. For DRUMS: use s("pattern").bank("RolandTR-808") - sounds: bd (kick), sd (snare), ch (closed hat), oh (open hat), cp (clap)
+3. For DRUMS: use Tidal names directly: 808bd (kick), 808sd (snare), 808ch (closed hat), 808oh (open hat), 808cp (clap), 909bd, 909sd, etc.
 4. Use stack() to layer multiple patterns: stack(kick, hihat, percussion)
 5. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
 6. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
 7. Keep patterns simple and musical
-8. DO NOT use: note() without m(), s("pattern") for drums, mask, stutter, slide, pan, or any undefined functions
-9. Available drum banks (WITH HYPHENS!): RolandTR-808, RolandTR-909, RolandTR-707, RolandTR-606
+8. DO NOT use: note() without m(), .bank(), mask, stutter, slide, pan, or any undefined functions
+9. Available drum sounds: 808bd, 808sd, 808ch, 808oh, 808cp, 808mt, 808ht, 808lt, 909bd, 909sd, 909ch, 909oh, 909cp
 
 BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
 - 1 bar: use .fast(4) - pattern loops 4x per cycle
@@ -109,8 +109,8 @@ BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
 - 16 bars: use .slow(4) - pattern spans 4 cycles
 
 EXAMPLES:
-- Drums basic: stack(s("bd ~ sd ~").bank("RolandTR-808").gain(0.9), s("ch*8").bank("RolandTR-808").gain(0.3))
-- Drums funky: stack(s("bd ~ [sd ~] [~ bd]").bank("RolandTR-808").gain(0.9), s("ch*8").bank("RolandTR-808").gain(0.3), s("~ ~ cp ~").bank("RolandTR-808").gain(0.4))
+- Drums basic: stack(s("808bd ~ 808sd ~").gain(0.9), s("808ch*8").gain(0.3))
+- Drums funky: stack(s("808bd ~ [808sd ~] [~ 808bd]").gain(0.9), s("808ch*8").gain(0.3), s("~ ~ 808cp ~").gain(0.4))
 - Bass 8 bars: m("c2 eb2 g2 bb2 c3 bb2 g2 eb2").note().s("sawtooth").slow(2).lpf(800).gain(0.5)
 - Lead 16-bar solo: m("c4 e4 g4 b4 c5 d5 e5 g5 a5 g5 e5 d5 c5 b4 g4 e4").note().s("square").slow(4).lpf(2000).gain(0.5)
 - Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
@@ -183,11 +183,11 @@ Generate your pattern now:`;
 
         const patterns = {
             drums: {
-                default: 'stack(s("bd ~ sd ~").bank("RolandTR-808").gain(0.9), s("ch*8").bank("RolandTR-808").gain(0.3))',
-                funky: 'stack(s("bd ~ [sd ~] [~ bd]").bank("RolandTR-808").gain(0.9), s("ch*8").bank("RolandTR-808").gain(0.3), s("~ ~ cp ~").bank("RolandTR-808").gain(0.4))',
-                minimal: 'stack(s("bd ~ ~ ~ sd ~ ~ ~").bank("RolandTR-808").gain(0.7), s("ch*4").bank("RolandTR-808").gain(0.2))',
-                intense: 'stack(s("bd*2 ~ sd ~ bd ~ sd bd").bank("RolandTR-808").gain(0.95), s("ch*16").bank("RolandTR-808").gain(0.4), s("cp*2").bank("RolandTR-808").gain(0.5))',
-                ambient: 'stack(s("~ bd ~ sd").bank("RolandTR-808").room(0.6).gain(0.5), s("ch*4").bank("RolandTR-808").room(0.5).gain(0.15))'
+                default: 'stack(s("808bd ~ 808sd ~").gain(0.9), s("808ch*8").gain(0.3))',
+                funky: 'stack(s("808bd ~ [808sd ~] [~ 808bd]").gain(0.9), s("808ch*8").gain(0.3), s("~ ~ 808cp ~").gain(0.4))',
+                minimal: 'stack(s("808bd ~ ~ ~ 808sd ~ ~ ~").gain(0.7), s("808ch*4").gain(0.2))',
+                intense: 'stack(s("808bd*2 ~ 808sd ~ 808bd ~ 808sd 808bd").gain(0.95), s("808ch*16").gain(0.4), s("808cp*2").gain(0.5))',
+                ambient: 'stack(s("~ 808bd ~ 808sd").room(0.6).gain(0.5), s("808ch*4").room(0.5).gain(0.15))'
             },
             bass: {
                 default: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
@@ -407,9 +407,9 @@ class Band {
      * Initialize all agents
      */
     initAgents() {
-        // Default starting patterns - drums use s("pattern") syntax for mini-notation
+        // Default starting patterns - drums use Tidal names (808bd, 808sd, 808ch)
         const defaultPatterns = {
-            drums: 'stack(s("bd ~ sd ~").bank("RolandTR-808").gain(0.9), s("ch*8").bank("RolandTR-808").gain(0.3))',
+            drums: 'stack(s("808bd ~ 808sd ~").gain(0.9), s("808ch*8").gain(0.3))',
             bass: 'm("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)',
             lead: 'm("<c4 e4 g4 b4>").note().s("square").lpf(2000).decay(0.3).gain(0.4)',
             pads: 'm("<c3 e3 g3>").note().s("triangle").lpf(800).attack(0.3).release(1).gain(0.3)',
