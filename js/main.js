@@ -138,12 +138,24 @@ class App {
 
         // Director
         document.getElementById('btnDirect')?.addEventListener('click', () => this.directBand());
-        document.getElementById('directorPrompt')?.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                this.directBand();
-            }
-        });
+        const directorInput = document.getElementById('directorPrompt');
+        if (directorInput) {
+            directorInput.addEventListener('keydown', (e) => {
+                // CTRL+Enter or CMD+Enter to submit
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    console.log('[App] CTRL+Enter detected, directing band...');
+                    this.directBand();
+                }
+                // Also allow Shift+Enter to submit (alternative)
+                if (e.shiftKey && e.key === 'Enter') {
+                    e.preventDefault();
+                    console.log('[App] Shift+Enter detected, directing band...');
+                    this.directBand();
+                }
+            });
+            console.log('[App] Director prompt keyboard shortcuts attached');
+        }
 
         // Presets
         document.querySelectorAll('.preset').forEach(btn => {
