@@ -158,6 +158,22 @@ class App {
         document.addEventListener('strudel:play', () => this.play());
         document.addEventListener('strudel:stop', () => this.stop());
         document.addEventListener('strudel:toggle', () => this.toggle());
+
+        // Settings modal
+        document.getElementById('btnSettings')?.addEventListener('click', () => this.openSettings());
+        document.getElementById('btnCloseSettings')?.addEventListener('click', () => this.closeSettings());
+        document.getElementById('btnSaveSettings')?.addEventListener('click', () => this.saveSettings());
+        document.getElementById('btnClearKeys')?.addEventListener('click', () => this.clearKeys());
+
+        // Close modal on overlay click
+        document.getElementById('settingsModal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') this.closeSettings();
+        });
+
+        // Escape key to close modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') this.closeSettings();
+        });
     }
 
     /**
@@ -440,6 +456,87 @@ class App {
         if (tempoDisplay) {
             tempoDisplay.textContent = bpm;
         }
+    }
+
+    /**
+     * Open settings modal
+     */
+    openSettings() {
+        const modal = document.getElementById('settingsModal');
+        const anthropicInput = document.getElementById('anthropicKey');
+        const geminiInput = document.getElementById('geminiKey');
+        const tempoInput = document.getElementById('tempoSetting');
+
+        // Load current values
+        if (anthropicInput) {
+            anthropicInput.value = localStorage.getItem('anthropic_api_key') || '';
+        }
+        if (geminiInput) {
+            geminiInput.value = localStorage.getItem('gemini_api_key') || '';
+        }
+        if (tempoInput) {
+            tempoInput.value = this.strudelEngine.tempo || 120;
+        }
+
+        modal?.classList.add('active');
+    }
+
+    /**
+     * Close settings modal
+     */
+    closeSettings() {
+        document.getElementById('settingsModal')?.classList.remove('active');
+    }
+
+    /**
+     * Save settings
+     */
+    saveSettings() {
+        const anthropicKey = document.getElementById('anthropicKey')?.value.trim();
+        const geminiKey = document.getElementById('geminiKey')?.value.trim();
+        const tempo = parseInt(document.getElementById('tempoSetting')?.value) || 120;
+
+        // Save Anthropic key
+        if (anthropicKey) {
+            localStorage.setItem('anthropic_api_key', anthropicKey);
+            window.ANTHROPIC_API_KEY = anthropicKey;
+            this.ui.updateConnectionStatus('online');
+            this.ui.addChatMessage('system', 'Anthropic API key saved!');
+        }
+
+        // Save Gemini key
+        if (geminiKey) {
+            localStorage.setItem('gemini_api_key', geminiKey);
+            CONFIG.GEMINI_API_KEY = geminiKey;
+
+            // Initialize Gemini manager if not already
+            if (!this.geminiManager) {
+                this.geminiManager = new GeminiAgentManager(geminiKey);
+                this.geminiManager.init();
+            }
+            this.ui.addChatMessage('system', 'Gemini API key saved! Listening mode enabled.');
+        }
+
+        // Save tempo
+        this.setTempo(tempo);
+
+        this.closeSettings();
+    }
+
+    /**
+     * Clear all stored keys
+     */
+    clearKeys() {
+        localStorage.removeItem('anthropic_api_key');
+        localStorage.removeItem('gemini_api_key');
+        window.ANTHROPIC_API_KEY = '';
+        CONFIG.GEMINI_API_KEY = '';
+
+        document.getElementById('anthropicKey').value = '';
+        document.getElementById('geminiKey').value = '';
+
+        this.ui.updateConnectionStatus('offline');
+        this.ui.addChatMessage('system', 'API keys cleared.');
     }
 
     /**
