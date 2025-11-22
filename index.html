@@ -336,64 +336,38 @@ stack(
     </div>
 
     <!-- SCRIPTS -->
-    <!-- Strudel.js 1.7.0 - Official builds from unpkg -->
+    <!-- Strudel.js 1.7.0 - Official ESM builds from unpkg -->
     <script type="module">
-        // Use official Strudel 1.7.0 builds from unpkg (recommended by Felix Roos)
-        import { repl, stack, sequence, cat, note, s, sound } from 'https://unpkg.com/@strudel/core@1.7.0/dist/index.mjs';
-        import { mini, m } from 'https://unpkg.com/@strudel/mini@1.7.0/dist/index.mjs';
-        import { initAudio, getAudioContext, webaudioOutput, registerSynthSounds, samples } from 'https://unpkg.com/@strudel/webaudio@1.7.0/dist/index.mjs';
+        // Correct ESM paths for Strudel 1.7.0
+        import { startAudio, loadDirtSamples, getAudioContext } from 'https://unpkg.com/@strudel/webaudio@1.7.0/dist/webaudio.esm.js';
+        import { mini } from 'https://unpkg.com/@strudel/mini@1.7.0/dist/mini.esm.js';
+        import { repl } from 'https://unpkg.com/@strudel/core@1.7.0/dist/core.esm.js';
 
         console.log('[Strudel 1.7.0] Initializing...');
 
-        // Initialize audio context
-        initAudio();
-        console.log('[Strudel] Audio initialized');
-
-        // Register synth sounds (sine, sawtooth, square, triangle)
+        // Load Dirt samples (includes TR-808, TR-909, etc.)
         try {
-            await registerSynthSounds();
-            console.log('[Strudel] Synth sounds registered: sine, sawtooth, square, triangle');
-        } catch (e) {
-            console.warn('[Strudel] Error registering synth sounds:', e);
-        }
-
-        // Load samples from dough-samples (the repo used by strudel.cc demos)
-        try {
-            console.log('[Strudel] Loading samples from dough-samples...');
-            const ds = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
-            await Promise.all([
-                samples(`${ds}Dirt-Samples.json`),
-                samples(`${ds}tidal-drum-machines.json`)
-            ]);
-            console.log('[Strudel] Samples loaded: Dirt-Samples + tidal-drum-machines (TR-808, TR-909, etc.)');
+            await loadDirtSamples();
+            console.log('[Strudel] Dirt samples loaded (TR-808, TR-909, bd, sd, hh, etc.)');
             window.drumsLoaded = true;
         } catch (e) {
-            console.warn('[Strudel] Sample loading failed:', e.message);
+            console.warn('[Strudel] Sample loading failed:', e);
             window.drumsLoaded = false;
         }
 
-        // Create REPL instance with mini-notation transpiler
-        const strudelRepl = repl({
-            defaultOutput: webaudioOutput,
-            getTime: () => getAudioContext().currentTime,
-            transpilers: [mini],
-        });
+        // Start audio engine with mini-notation transpiler
+        startAudio({ transpilers: [mini] });
+        console.log('[Strudel] Audio started with mini-notation support');
 
-        // Expose everything to window for our engine
+        // Create REPL instance
+        const strudelRepl = repl();
+
+        // Expose to window for our engine
         window.strudelRepl = strudelRepl;
         window.getStrudelAudioContext = getAudioContext;
-        window.stack = stack;
-        window.sequence = sequence;
-        window.cat = cat;
-        window.note = note;
-        window.s = s;
-        window.sound = sound;
-        window.m = m;
-        window.mini = m;
-
-        // Mark Strudel as ready
         window.strudelReady = true;
-        console.log('[Strudel 1.7.0] Ready! Functions: stack, sequence, cat, note, s, sound, m');
+
+        console.log('[Strudel 1.7.0] Ready! window.strudelRepl available');
     </script>
 
     <script src="js/debug.js"></script>
