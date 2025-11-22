@@ -94,7 +94,7 @@ CRITICAL RULES:
 1. Output ONLY valid Strudel code, no markdown, no explanation, no comments
 2. For SYNTHS: use m("pattern").note().s("synthname") - synths: sine, sawtooth, square, triangle
 3. For DRUMS: use s("bd sd hh").bank("RolandTR909") - sounds: bd (kick), sd (snare), hh (hihat), cp (clap), rim, tom, crash
-4. Use stack() to layer multiple patterns: stack(drums, hihat, percussion)
+4. Use stack() to layer multiple patterns: stack(kick, hihat, percussion)
 5. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
 6. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
 7. Keep patterns simple and musical

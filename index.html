@@ -357,26 +357,23 @@ stack(
 
         // Load drum samples from Strudel's official sample repository
         try {
-            // Load from the official Strudel samples GitHub repo (like TidalCycles dirt-samples)
+            // Load Dirt-Samples for basic drums (bd, sd, hh, cp)
             await samples('github:tidalcycles/Dirt-Samples/master');
             console.log('[Strudel] Dirt-Samples loaded from GitHub!');
             window.drumsLoaded = true;
         } catch (e) {
-            console.warn('[Strudel] GitHub samples failed, trying direct URLs...', e.message);
-            // Fallback to direct URLs
-            try {
-                await samples({
-                    bd: ['https://cdn.freesound.org/previews/171/171104_2394245-lq.mp3'],
-                    sd: ['https://cdn.freesound.org/previews/387/387186_7255534-lq.mp3'],
-                    hh: ['https://cdn.freesound.org/previews/561/561241_12517458-lq.mp3'],
-                    cp: ['https://cdn.freesound.org/previews/183/183102_2394245-lq.mp3'],
-                });
-                console.log('[Strudel] Fallback drum samples loaded');
-                window.drumsLoaded = true;
-            } catch (e2) {
-                console.warn('[Strudel] Could not load drum samples:', e2.message);
-                window.drumsLoaded = false;
-            }
+            console.warn('[Strudel] GitHub samples failed:', e.message);
+            window.drumsLoaded = false;
+        }
+
+        // Load TR-909 bank from Strudel's sample collection
+        try {
+            await samples('github:strudel-project/strudel/main/website/public/samples.json');
+            console.log('[Strudel] Strudel sample banks loaded (including TR-909)!');
+            window.sampleBanksLoaded = true;
+        } catch (e) {
+            console.warn('[Strudel] Could not load sample banks:', e.message);
+            window.sampleBanksLoaded = false;
         }
 
         // Create REPL instance with mini-notation support
