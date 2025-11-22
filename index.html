@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STRUDEL BAND - AI Jam Session</title>
+    <script src="https://unpkg.com/@strudel/embed@latest"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- FULLSCREEN CONTAINER -->
+    <div id="app">
+
+        <!-- TOP BAR - Minimal -->
+        <header class="top-bar">
+            <div class="logo">
+                <span class="logo-icon">~</span>
+                <span class="logo-text">STRUDEL BAND</span>
+                <span class="logo-status" id="connectionStatus">offline</span>
+            </div>
+
+            <div class="transport">
+                <button class="transport-btn" id="btnPlay" title="Play (Space)">
+                    <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                </button>
+                <button class="transport-btn" id="btnStop" title="Stop (.)">
+                    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/></svg>
+                </button>
+                <div class="tempo-display">
+                    <span id="tempoValue">120</span>
+                    <span class="tempo-label">BPM</span>
+                </div>
+            </div>
+
+            <div class="top-actions">
+                <button class="action-btn" id="btnListen" title="Agents Listen Mode">
+                    <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2a7 7 0 1 1 14 0v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
+                    <span>Listen</span>
+                </button>
+                <button class="action-btn" id="btnFullscreen" title="Fullscreen (F)">
+                    <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN STAGE -->
+        <main class="stage">
+
+            <!-- LEFT: DIRECTOR PANEL -->
+            <aside class="director-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">~</span>
+                    <span>DIRECTOR</span>
+                </div>
+
+                <div class="presets-grid">
+                    <button class="preset" data-mood="ambient">ambient</button>
+                    <button class="preset" data-mood="funk">funk</button>
+                    <button class="preset" data-mood="minimal">minimal</button>
+                    <button class="preset" data-mood="chaos">chaos</button>
+                    <button class="preset" data-mood="drop">DROP!</button>
+                    <button class="preset" data-mood="build">build</button>
+                </div>
+
+                <div class="director-input">
+                    <textarea id="directorPrompt" placeholder="Talk to the band...&#10;&#10;'Everyone build for 8 bars then drop'&#10;'Bass, go dubby'&#10;'Drums, take a break'"></textarea>
+                    <button class="director-send" id="btnDirect">
+                        <span>Direct</span>
+                        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+
+                <!-- AGENT CHAT -->
+                <div class="agent-chat">
+                    <div class="chat-header">
+                        <span>Band Chat</span>
+                        <span class="chat-indicator"></span>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-msg system">Session started. Agents ready.</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CENTER: AGENTS STAGE -->
+            <section class="agents-stage">
+
+                <!-- AGENT: DRUMS -->
+                <article class="agent" data-agent="drums">
+                    <div class="agent-header">
+                        <div class="agent-avatar drums">
+                            <div class="avatar-ring"></div>
+                            <span class="avatar-icon">D</span>
+                        </div>
+                        <div class="agent-info">
+                            <h3>DRUMS</h3>
+                            <p class="agent-status" id="drums-status">idle</p>
+                        </div>
+                        <div class="agent-controls">
+                            <button class="ctrl-btn mute" data-action="mute" title="Mute">M</button>
+                            <button class="ctrl-btn solo" data-action="solo" title="Solo">S</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-code">
+                        <pre id="drums-code" class="code-display">// waiting for pattern...</pre>
+                        <div class="code-overlay"></div>
+                    </div>
+
+                    <div class="agent-input">
+                        <input type="text" id="drums-prompt" placeholder="breakbeat with fills..." />
+                        <button class="gen-btn" data-agent="drums">Gen</button>
+                    </div>
+
+                    <div class="agent-visualizer" id="drums-viz"></div>
+                </article>
+
+                <!-- AGENT: BASS -->
+                <article class="agent" data-agent="bass">
+                    <div class="agent-header">
+                        <div class="agent-avatar bass">
+                            <div class="avatar-ring"></div>
+                            <span class="avatar-icon">B</span>
+                        </div>
+                        <div class="agent-info">
+                            <h3>BASS</h3>
+                            <p class="agent-status" id="bass-status">idle</p>
+                        </div>
+                        <div class="agent-controls">
+                            <button class="ctrl-btn mute" data-action="mute" title="Mute">M</button>
+                            <button class="ctrl-btn solo" data-action="solo" title="Solo">S</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-code">
+                        <pre id="bass-code" class="code-display">// waiting for pattern...</pre>
+                        <div class="code-overlay"></div>
+                    </div>
+
+                    <div class="agent-input">
+                        <input type="text" id="bass-prompt" placeholder="deep sub groove..." />
+                        <button class="gen-btn" data-agent="bass">Gen</button>
+                    </div>
+
+                    <div class="agent-visualizer" id="bass-viz"></div>
+                </article>
+
+                <!-- AGENT: LEAD -->
+                <article class="agent" data-agent="lead">
+                    <div class="agent-header">
+                        <div class="agent-avatar lead">
+                            <div class="avatar-ring"></div>
+                            <span class="avatar-icon">L</span>
+                        </div>
+                        <div class="agent-info">
+                            <h3>LEAD</h3>
+                            <p class="agent-status" id="lead-status">idle</p>
+                        </div>
+                        <div class="agent-controls">
+                            <button class="ctrl-btn mute" data-action="mute" title="Mute">M</button>
+                            <button class="ctrl-btn solo" data-action="solo" title="Solo">S</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-code">
+                        <pre id="lead-code" class="code-display">// waiting for pattern...</pre>
+                        <div class="code-overlay"></div>
+                    </div>
+
+                    <div class="agent-input">
+                        <input type="text" id="lead-prompt" placeholder="arpeggio with delay..." />
+                        <button class="gen-btn" data-agent="lead">Gen</button>
+                    </div>
+
+                    <div class="agent-visualizer" id="lead-viz"></div>
+                </article>
+
+                <!-- AGENT: PADS -->
+                <article class="agent" data-agent="pads">
+                    <div class="agent-header">
+                        <div class="agent-avatar pads">
+                            <div class="avatar-ring"></div>
+                            <span class="avatar-icon">P</span>
+                        </div>
+                        <div class="agent-info">
+                            <h3>PADS</h3>
+                            <p class="agent-status" id="pads-status">idle</p>
+                        </div>
+                        <div class="agent-controls">
+                            <button class="ctrl-btn mute" data-action="mute" title="Mute">M</button>
+                            <button class="ctrl-btn solo" data-action="solo" title="Solo">S</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-code">
+                        <pre id="pads-code" class="code-display">// waiting for pattern...</pre>
+                        <div class="code-overlay"></div>
+                    </div>
+
+                    <div class="agent-input">
+                        <input type="text" id="pads-prompt" placeholder="atmospheric textures..." />
+                        <button class="gen-btn" data-agent="pads">Gen</button>
+                    </div>
+
+                    <div class="agent-visualizer" id="pads-viz"></div>
+                </article>
+
+                <!-- AGENT: FX -->
+                <article class="agent" data-agent="fx">
+                    <div class="agent-header">
+                        <div class="agent-avatar fx">
+                            <div class="avatar-ring"></div>
+                            <span class="avatar-icon">X</span>
+                        </div>
+                        <div class="agent-info">
+                            <h3>FX</h3>
+                            <p class="agent-status" id="fx-status">idle</p>
+                        </div>
+                        <div class="agent-controls">
+                            <button class="ctrl-btn mute" data-action="mute" title="Mute">M</button>
+                            <button class="ctrl-btn solo" data-action="solo" title="Solo">S</button>
+                        </div>
+                    </div>
+
+                    <div class="agent-code">
+                        <pre id="fx-code" class="code-display">// waiting for pattern...</pre>
+                        <div class="code-overlay"></div>
+                    </div>
+
+                    <div class="agent-input">
+                        <input type="text" id="fx-prompt" placeholder="glitchy textures..." />
+                        <button class="gen-btn" data-agent="fx">Gen</button>
+                    </div>
+
+                    <div class="agent-visualizer" id="fx-viz"></div>
+                </article>
+
+            </section>
+
+            <!-- RIGHT: LIVE CODE VIEW -->
+            <aside class="code-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">{}</span>
+                    <span>LIVE CODE</span>
+                    <button class="copy-btn" id="btnCopyCode" title="Copy">
+                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                </div>
+
+                <div class="live-code-container">
+                    <pre id="liveCode" class="live-code">// Combined pattern will appear here
+// when agents generate code
+
+stack(
+  // drums
+  // bass
+  // lead
+  // pads
+  // fx
+)</pre>
+                </div>
+
+                <div class="audio-analyzer">
+                    <canvas id="analyzerCanvas"></canvas>
+                    <div class="analyzer-info">
+                        <span id="detectedKey">--</span>
+                        <span id="detectedEnergy">--</span>
+                    </div>
+                </div>
+            </aside>
+
+        </main>
+
+        <!-- FLOATING AGENT BUBBLES (for agent chat) -->
+        <div class="agent-bubbles" id="agentBubbles"></div>
+
+        <!-- GLOBAL LOADING OVERLAY -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Generating...</p>
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/audio-capture.js"></script>
+    <script src="js/agents.js"></script>
+    <script src="js/gemini-live.js"></script>
+    <script src="js/strudel-engine.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
