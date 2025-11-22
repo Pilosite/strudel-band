@@ -337,19 +337,68 @@ stack(
     </div>
 
     <!-- SCRIPTS -->
-    <!-- Strudel - Use mini REPL approach -->
+    <!-- Strudel - Dynamic load with proper sample loading -->
     <script>
-        // Load Strudel dynamically to avoid ES module blocking issues
         console.log("[Strudel] Starting dynamic load...");
+
+        async function loadDrumSamples(module) {
+            const samplesUrl = "https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json";
+            console.log("[Strudel] Loading drum machines from:", samplesUrl);
+
+            try {
+                // Try different loading methods
+                if (typeof module.loadSampleBank === 'function') {
+                    await module.loadSampleBank(samplesUrl);
+                    console.log("[Strudel] Loaded via loadSampleBank()");
+                    return true;
+                }
+
+                // Alternative: fetch and register manually
+                const response = await fetch(samplesUrl);
+                const machinesData = await response.json();
+                console.log("[Strudel] Fetched machines.json, keys:", Object.keys(machinesData).slice(0, 5));
+
+                // Register each machine's samples
+                if (typeof module.registerSound === 'function') {
+                    for (const [machineName, machineData] of Object.entries(machinesData)) {
+                        if (machineData.samples) {
+                            for (const [soundName, urls] of Object.entries(machineData.samples)) {
+                                const fullName = soundName; // e.g., "808bd"
+                                const url = Array.isArray(urls) ? urls[0] : urls;
+                                if (url) {
+                                    module.registerSound(fullName, url, { baseUrl: machineData.baseUrl || '' });
+                                }
+                            }
+                        }
+                    }
+                    console.log("[Strudel] Registered sounds via registerSound()");
+                    return true;
+                }
+
+                // Last resort: use samples() as a registration function
+                if (typeof module.samples === 'function') {
+                    // samples() in Strudel can take a URL to load
+                    await module.samples(samplesUrl);
+                    console.log("[Strudel] Loaded via samples()");
+                    return true;
+                }
+
+                console.warn("[Strudel] No sample loading method found");
+                return false;
+            } catch (e) {
+                console.error("[Strudel] Failed to load samples:", e);
+                return false;
+            }
+        }
 
         (async function loadStrudel() {
             try {
-                // Try unpkg CDN (often faster/more reliable)
-                const cdnUrl = "https://unpkg.com/@strudel/web@1.1.0/dist/index.mjs";
+                // Try jsdelivr CDN with version 1.1.0
+                const cdnUrl = "https://cdn.jsdelivr.net/npm/@strudel/web@1.1.0/dist/index.mjs";
                 console.log("[Strudel] Loading from:", cdnUrl);
 
                 const module = await import(cdnUrl);
-                console.log("[Strudel] Module loaded! Exports:", Object.keys(module));
+                console.log("[Strudel] Module loaded! Exports:", Object.keys(module).slice(0, 20), "...");
 
                 // Store module
                 window.strudel = module;
@@ -369,23 +418,18 @@ stack(
                 }
 
                 // Load drum samples
-                console.log("[Strudel] Loading drum machines...");
-                if (module.samples) {
-                    await module.samples("https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json");
-                    console.log("[Strudel] Drum machines loaded!");
-                }
+                await loadDrumSamples(module);
 
                 window.strudelReady = true;
                 console.log("🎉 Strudel ready!");
 
             } catch (e) {
                 console.error("[Strudel] Failed to load:", e);
-                console.log("[Strudel] Trying alternative CDN...");
+                console.log("[Strudel] Trying alternative CDN (unpkg)...");
 
                 try {
-                    // Fallback: jsdelivr
-                    const module2 = await import("https://cdn.jsdelivr.net/npm/@strudel/web@1.1.0/dist/index.mjs");
-                    console.log("[Strudel] Fallback loaded! Exports:", Object.keys(module2));
+                    const module2 = await import("https://unpkg.com/@strudel/web@1.1.0/dist/index.mjs");
+                    console.log("[Strudel] Fallback loaded!");
 
                     window.strudel = module2;
                     if (module2.initStrudel) {
@@ -394,12 +438,7 @@ stack(
                         window.hush = stop;
                     }
 
-                    // Load drum samples in fallback too!
-                    console.log("[Strudel] Loading drum machines (fallback)...");
-                    if (module2.samples) {
-                        await module2.samples("https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json");
-                        console.log("[Strudel] Drum machines loaded!");
-                    }
+                    await loadDrumSamples(module2);
 
                     window.strudelReady = true;
                     console.log("🎉 Strudel ready (fallback)!");
