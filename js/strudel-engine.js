@@ -31,43 +31,81 @@ class StrudelEngine {
         console.log('[StrudelEngine] init() called');
         return new Promise((resolve, reject) => {
             let checkCount = 0;
+            const maxChecks = 3;
 
-            // Wait for Strudel embed to load
+            // Check what Strudel globals are available
             const checkStrudel = () => {
                 checkCount++;
-                console.log(`[StrudelEngine] Checking for Strudel (attempt ${checkCount})...`);
+                console.log(`[StrudelEngine] Checking for Strudel (attempt ${checkCount}/${maxChecks})...`);
 
-                if (typeof window.strudel !== 'undefined') {
+                // Log available strudel-related globals for debugging
+                const strudelGlobals = Object.keys(window).filter(k =>
+                    k.toLowerCase().includes('strudel') ||
+                    k === 'evaluate' ||
+                    k === 'hush' ||
+                    k === 'repl' ||
+                    k === 'strudelRepl'
+                );
+                if (strudelGlobals.length > 0) {
+                    console.log('[StrudelEngine] Found globals:', strudelGlobals);
+                }
+
+                // Check for our custom Strudel module setup
+                if (typeof window.strudelRepl !== 'undefined') {
+                    console.log('[StrudelEngine] Found window.strudelRepl!');
+                    this.setupStrudelFromModule();
+                    resolve(true);
+                } else if (typeof window.strudel !== 'undefined') {
                     console.log('[StrudelEngine] Found window.strudel!');
                     this.setupStrudelFunctions();
                     resolve(true);
                 } else if (typeof window.evaluate !== 'undefined') {
-                    // Functions might be global
                     console.log('[StrudelEngine] Found window.evaluate!');
                     this.evaluate = window.evaluate;
                     this.hush = window.hush;
                     resolve(true);
+                } else if (checkCount < maxChecks) {
+                    setTimeout(checkStrudel, 500);
                 } else {
-                    // Keep checking (max 50 attempts = 5 seconds)
-                    if (checkCount < 50) {
-                        setTimeout(checkStrudel, 100);
-                    }
-                }
-            };
-
-            // Start checking after a short delay
-            console.log('[StrudelEngine] Starting Strudel detection in 500ms...');
-            setTimeout(checkStrudel, 500);
-
-            // Timeout after 5 seconds (reduced from 10)
-            setTimeout(() => {
-                if (!this.evaluate) {
-                    console.warn('[StrudelEngine] Strudel not loaded after 5s, using mock mode');
+                    console.warn('[StrudelEngine] Strudel not found, using mock mode');
                     this.setupMockMode();
                     resolve(true);
                 }
-            }, 5000);
+            };
+
+            // Start checking after a short delay for script to load
+            console.log('[StrudelEngine] Starting Strudel detection in 500ms...');
+            setTimeout(checkStrudel, 500);
         });
+    }
+
+    /**
+     * Setup Strudel from our module import
+     */
+    setupStrudelFromModule() {
+        const repl = window.strudelRepl;
+
+        this.evaluate = async (code) => {
+            console.log('[StrudelEngine] Evaluating:', code);
+            try {
+                await repl.evaluate(code);
+            } catch (e) {
+                console.error('[StrudelEngine] Eval error:', e);
+                if (this.onError) this.onError(e);
+            }
+        };
+
+        this.hush = () => {
+            console.log('[StrudelEngine] Hushing...');
+            repl.stop();
+        };
+
+        // Get audio context for capture
+        if (window.getStrudelAudioContext) {
+            this.audioContext = window.getStrudelAudioContext();
+        }
+
+        console.log('[StrudelEngine] Strudel module functions ready');
     }
 
     /**

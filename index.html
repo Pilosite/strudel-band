@@ -343,7 +343,26 @@ stack(
 
     <!-- SCRIPTS -->
     <!-- Strudel.js - TidalCycles for the browser -->
-    <script src="https://unpkg.com/@strudel/repl@latest"></script>
+    <script type="module">
+        import { controls, repl } from 'https://unpkg.com/@strudel/core@latest';
+        import { initAudioOnFirstClick, getAudioContext, webaudioOutput } from 'https://unpkg.com/@strudel/webaudio@latest';
+
+        // Initialize Strudel on first user interaction
+        initAudioOnFirstClick();
+
+        // Create REPL instance
+        const strudelRepl = repl({
+            defaultOutput: webaudioOutput,
+            getTime: () => getAudioContext().currentTime,
+        });
+
+        // Expose to window for our engine
+        window.strudelRepl = strudelRepl;
+        window.strudelControls = controls;
+        window.getStrudelAudioContext = getAudioContext;
+
+        console.log('[Strudel] Module loaded and exposed to window');
+    </script>
 
     <script src="js/debug.js"></script>
     <script src="js/config.js"></script>
