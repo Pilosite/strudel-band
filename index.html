@@ -336,19 +336,20 @@ stack(
     </div>
 
     <!-- SCRIPTS -->
-    <!-- Strudel.js - TidalCycles for the browser (using esm.sh for proper ESM resolution) -->
+    <!-- Strudel.js 1.7.0 - Official builds from unpkg -->
     <script type="module">
-        import { controls, repl, stack, sequence, cat, note, s, sound } from 'https://esm.sh/@strudel/core@1.1.0';
-        // mini transpiler parses "pattern" strings into patterns when evaluated via REPL
-        import { mini, m } from 'https://esm.sh/@strudel/mini@1.1.0';
-        import { initAudioOnFirstClick, getAudioContext, webaudioOutput, registerSynthSounds, samples } from 'https://esm.sh/@strudel/webaudio@1.1.0';
+        // Use official Strudel 1.7.0 builds from unpkg (recommended by Felix Roos)
+        import { repl, stack, sequence, cat, note, s, sound } from 'https://unpkg.com/@strudel/core@1.7.0/dist/index.mjs';
+        import { mini, m } from 'https://unpkg.com/@strudel/mini@1.7.0/dist/index.mjs';
+        import { initAudio, getAudioContext, webaudioOutput, registerSynthSounds, samples } from 'https://unpkg.com/@strudel/webaudio@1.7.0/dist/index.mjs';
 
-        console.log('[Strudel] Initializing...');
+        console.log('[Strudel 1.7.0] Initializing...');
 
-        // Initialize audio on first user interaction
-        initAudioOnFirstClick();
+        // Initialize audio context
+        initAudio();
+        console.log('[Strudel] Audio initialized');
 
-        // Register synth sounds (sine, sawtooth, square, triangle) - MUST await this
+        // Register synth sounds (sine, sawtooth, square, triangle)
         try {
             await registerSynthSounds();
             console.log('[Strudel] Synth sounds registered: sine, sawtooth, square, triangle');
@@ -357,51 +358,42 @@ stack(
         }
 
         // Load samples from dough-samples (the repo used by strudel.cc demos)
-        // JSON files have _base embedded - DO NOT use 2nd argument!
         try {
-            console.log('[Strudel] Loading from dough-samples (1-arg form)...');
-
+            console.log('[Strudel] Loading samples from dough-samples...');
             const ds = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
-
             await Promise.all([
                 samples(`${ds}Dirt-Samples.json`),
                 samples(`${ds}tidal-drum-machines.json`)
             ]);
-
-            console.log('[Strudel] dough-samples loaded (Dirt + drum machines)!');
+            console.log('[Strudel] Samples loaded: Dirt-Samples + tidal-drum-machines (TR-808, TR-909, etc.)');
             window.drumsLoaded = true;
         } catch (e) {
             console.warn('[Strudel] Sample loading failed:', e.message);
             window.drumsLoaded = false;
         }
 
-        // Create REPL instance with mini-notation support
+        // Create REPL instance with mini-notation transpiler
         const strudelRepl = repl({
             defaultOutput: webaudioOutput,
             getTime: () => getAudioContext().currentTime,
             transpilers: [mini],
         });
 
-        // Expose pattern functions to window for our engine
+        // Expose everything to window for our engine
         window.strudelRepl = strudelRepl;
-        window.strudelControls = controls;
         window.getStrudelAudioContext = getAudioContext;
-
-        // Expose pattern combinators globally so evaluate can use them
         window.stack = stack;
         window.sequence = sequence;
         window.cat = cat;
         window.note = note;
         window.s = s;
         window.sound = sound;
-
-        // CRITICAL: Expose mini() function to parse mini-notation strings into patterns
         window.m = m;
         window.mini = m;
 
         // Mark Strudel as ready
         window.strudelReady = true;
-        console.log('[Strudel] Module loaded with: stack, sequence, cat, note, s, sound, m (mini)');
+        console.log('[Strudel 1.7.0] Ready! Functions: stack, sequence, cat, note, s, sound, m');
     </script>
 
     <script src="js/debug.js"></script>
