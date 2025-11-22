@@ -341,14 +341,9 @@ stack(
         import { controls, repl, stack, sequence, cat, note, s, sound } from 'https://esm.sh/@strudel/core@1.1.0';
         // mini transpiler parses "pattern" strings into patterns when evaluated via REPL
         import { mini, m } from 'https://esm.sh/@strudel/mini@1.1.0';
-        import { initAudioOnFirstClick, getAudioContext, webaudioOutput, registerSynthSounds, samples, register } from 'https://esm.sh/@strudel/webaudio@1.1.0';
+        import { initAudioOnFirstClick, getAudioContext, webaudioOutput, registerSynthSounds, samples } from 'https://esm.sh/@strudel/webaudio@1.1.0';
 
         console.log('[Strudel] Initializing...');
-
-        // CRITICAL: Register mini transpiler with Cyclist (audio engine) - NOT just REPL!
-        // This enables mini-notation parsing so "bd ~ sd ~" becomes individual sounds
-        register({ transpilers: [mini] });
-        console.log('[Strudel] Mini transpiler registered with Cyclist engine');
 
         // Initialize audio on first user interaction
         initAudioOnFirstClick();
