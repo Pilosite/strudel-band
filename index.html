@@ -355,20 +355,24 @@ stack(
             console.warn('[Strudel] Error registering synth sounds:', e);
         }
 
-        // Load drum machines + Dirt samples from dough-samples
-        // Using 1-argument form (JSON files have _base paths embedded)
+        // Load REAL samples from tidalcycles repos (not dough-samples which has no audio files!)
         try {
-            const ds = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
-            console.log('[Strudel] Loading samples from dough-samples...');
+            console.log('[Strudel] Loading REAL samples from tidalcycles repos...');
+
+            // Drum machines from the REAL tidal-drum-machines repo
+            const dm = 'https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main';
+
+            // Dirt-Samples from the REAL Dirt-Samples repo
+            const ds = 'https://raw.githubusercontent.com/tidalcycles/Dirt-Samples/master';
 
             await Promise.all([
-                // Drum machines (RolandTR909, RolandTR808, etc.)
-                samples(`${ds}tidal-drum-machines.json`),
+                // Drum machines (RolandTR808, RolandTR707, AkaiLinn, etc.)
+                samples(`${dm}/tidal-drum-machines.json`, `${dm}/machines/`),
                 // Dirt-Samples (bd, sd, hh, cp, etc.)
-                samples(`${ds}Dirt-Samples.json`),
+                samples(`${ds}/strudel.json`, `${ds}/`),
             ]);
 
-            console.log('[Strudel] dough-samples (drum-machines + Dirt-Samples) loaded!');
+            console.log('[Strudel] REAL tidalcycles samples loaded!');
             window.drumsLoaded = true;
         } catch (e) {
             console.warn('[Strudel] Sample loading failed:', e.message);
