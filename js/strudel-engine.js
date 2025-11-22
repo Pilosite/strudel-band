@@ -31,7 +31,7 @@ class StrudelEngine {
         console.log('[StrudelEngine] init() called');
         return new Promise((resolve, reject) => {
             let checkCount = 0;
-            const maxChecks = 50; // More attempts for Strudel Web loading
+            const maxChecks = 100; // More attempts for ES module loading (10s total)
             const checkInterval = 100; // Check every 100ms
 
             // Check what Strudel globals are available
@@ -62,6 +62,23 @@ class StrudelEngine {
                     console.log('[StrudelEngine] Strudel Web ready!');
                     resolve(true);
                 }
+                // Check for window.repl object (from our module setup)
+                else if (window.repl && typeof window.repl.evaluate === 'function') {
+                    console.log('[StrudelEngine] Found window.repl with evaluate!');
+                    this.evaluate = window.repl.evaluate.bind(window.repl);
+                    this.hush = window.repl.stop ? window.repl.stop.bind(window.repl) : () => {};
+                    console.log('[StrudelEngine] Strudel repl ready!');
+                    resolve(true);
+                }
+                // Check for window.strudel object with repl
+                else if (window.strudel && window.strudel.repl) {
+                    console.log('[StrudelEngine] Found window.strudel.repl!');
+                    const repl = window.strudel.repl;
+                    this.evaluate = repl.evaluate.bind(repl);
+                    this.hush = repl.stop ? repl.stop.bind(repl) : () => {};
+                    console.log('[StrudelEngine] Strudel module ready!');
+                    resolve(true);
+                }
                 // Check for our custom Strudel module setup (wait for ready flag)
                 else if (window.strudelReady && typeof window.strudelRepl !== 'undefined') {
                     console.log('[StrudelEngine] Found window.strudelRepl and ready!');
@@ -70,14 +87,14 @@ class StrudelEngine {
                 } else if (typeof window.strudelRepl !== 'undefined') {
                     console.log('[StrudelEngine] Found window.strudelRepl (waiting for ready)...');
                     setTimeout(checkStrudel, checkInterval);
-                } else if (typeof window.strudel !== 'undefined') {
-                    console.log('[StrudelEngine] Found window.strudel!');
-                    this.setupStrudelFunctions();
-                    resolve(true);
+                } else if (window.strudelReady) {
+                    // strudelReady is set but no repl yet - keep waiting
+                    console.log('[StrudelEngine] strudelReady but no repl yet...');
+                    setTimeout(checkStrudel, checkInterval);
                 } else if (checkCount < maxChecks) {
                     setTimeout(checkStrudel, checkInterval);
                 } else {
-                    console.warn('[StrudelEngine] Strudel not found after 5s, using mock mode');
+                    console.warn('[StrudelEngine] Strudel not found after 10s, using mock mode');
                     this.setupMockMode();
                     resolve(true);
                 }

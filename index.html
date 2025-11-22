@@ -337,22 +337,49 @@ stack(
     </div>
 
     <!-- SCRIPTS -->
-    <!-- Strudel Web 1.8.0 - Complete bundle from jsdelivr -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@strudel/web@1.8.0/dist/strudel.js"></script>
-
-    <!-- Load drum machine sample banks -->
+    <!-- Strudel Web - Load and expose globals -->
     <script type="module">
-        import { loadSampleBank } from "https://cdn.jsdelivr.net/npm/@strudel/web@1.8.0/dist/strudel.js";
+        // Import everything from Strudel Web
+        import * as strudel from "https://cdn.jsdelivr.net/npm/@strudel/web@1.8.0/dist/strudel.js";
 
+        console.log("[Strudel] Strudel Web module loaded, exposing globals...");
+        console.log("[Strudel] Available exports:", Object.keys(strudel));
+
+        // Expose key functions to window for StrudelEngine to find
+        window.strudel = strudel;
+
+        // The repl object contains evaluate and hush
+        if (strudel.repl) {
+            window.repl = strudel.repl;
+            window.evaluate = strudel.repl.evaluate.bind(strudel.repl);
+            window.hush = strudel.repl.stop.bind(strudel.repl);
+            console.log("[Strudel] Exposed repl.evaluate and repl.stop as window.evaluate/hush");
+        }
+
+        // Also expose initStrudel if available
+        if (strudel.initStrudel) {
+            window.initStrudel = strudel.initStrudel;
+        }
+
+        // Load drum machine samples
         console.log("[Strudel] Loading drum machine sample banks...");
-
-        // Load tidal-drum-machines (808bd, 808sd, 808ch, 909bd, etc.)
-        await loadSampleBank("https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json");
+        try {
+            if (strudel.loadSampleBank) {
+                await strudel.loadSampleBank("https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json");
+                console.log("[Strudel] Drum machines loaded!");
+            } else if (strudel.samples) {
+                // Alternative: use samples() function
+                await strudel.samples("https://raw.githubusercontent.com/tidalcycles/tidal-drum-machines/main/machines.json");
+                console.log("[Strudel] Drum machines loaded via samples()!");
+            }
+        } catch (e) {
+            console.warn("[Strudel] Could not load drum machines:", e);
+        }
 
         window.drumsLoaded = true;
         window.strudelReady = true;
 
-        console.log("🎉 Strudel Web 1.8.0 loaded with drum machines!");
+        console.log("🎉 Strudel Web 1.8.0 ready!");
         console.log("Available: 808bd, 808sd, 808ch, 808oh, 808cp, 909bd, 909sd, etc.");
     </script>
 
