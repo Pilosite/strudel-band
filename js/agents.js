@@ -119,35 +119,48 @@ Generate your pattern now:`;
      * Generate with fallback patterns
      */
     async generateWithFallback(prompt, systemPrompt) {
-        // Try Claude API if available
-        try {
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': window.ANTHROPIC_API_KEY || '',
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerous-direct-browser-access': 'true'
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 500,
-                    messages: [{
-                        role: 'user',
-                        content: `${systemPrompt}\n\n${prompt}`
-                    }]
-                })
-            });
+        // Try Gemini API if available
+        const geminiKey = CONFIG.GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
 
-            if (response.ok) {
-                const data = await response.json();
-                return data.content[0].text;
+        if (geminiKey) {
+            try {
+                console.log(`[${this.id}] Calling Gemini API for generation...`);
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `${systemPrompt}\n\n${prompt}`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.8,
+                            maxOutputTokens: 500
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        console.log(`[${this.id}] Gemini generated:`, text.substring(0, 100) + '...');
+                        return text;
+                    }
+                } else {
+                    const error = await response.text();
+                    console.warn(`[${this.id}] Gemini API error:`, error);
+                }
+            } catch (e) {
+                console.warn(`[${this.id}] Gemini API call failed:`, e);
             }
-        } catch (e) {
-            console.warn('[Agent] API call failed, using fallback:', e);
         }
 
         // Fallback to demo patterns
+        console.log(`[${this.id}] Using demo pattern`);
         return this.getDemoPattern(prompt);
     }
 
@@ -335,8 +348,23 @@ class Band {
      * Initialize all agents
      */
     initAgents() {
+        // Default starting patterns
+        const defaultPatterns = {
+            drums: 's("bd hh sn hh").fast(2)',
+            bass: 'note("c2 [~ c2] eb2 g2").s("sawtooth").lpf(800)',
+            lead: 'note("<c4 e4 g4 b4>").s("sawtooth").lpf(2000).decay(0.3)',
+            pads: 'note("<c3 e3 g3>").s("sawtooth").lpf(500).attack(0.5).release(2)',
+            fx: 's("hh*4").delay(0.5).room(0.5).gain(0.2)'
+        };
+
         Object.entries(CONFIG.AGENTS).forEach(([id, config]) => {
             const agent = new Agent(id, config);
+
+            // Set default pattern
+            if (defaultPatterns[id]) {
+                agent.code = defaultPatterns[id];
+                agent.isActive = true;
+            }
 
             agent.onCodeChange = (agentId, newCode, oldCode) => {
                 if (this.onCodeChange) {
@@ -441,34 +469,42 @@ class Band {
             }
         }
 
-        // Try to use Claude API to parse
-        try {
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-api-key': window.ANTHROPIC_API_KEY || '',
-                    'anthropic-version': '2023-06-01',
-                    'anthropic-dangerous-direct-browser-access': 'true'
-                },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 800,
-                    messages: [{
-                        role: 'user',
-                        content: `${CONFIG.DIRECTOR.systemPrompt}\n\nInstruction: "${instruction}"`
-                    }]
-                })
-            });
+        // Try to use Gemini API to parse
+        const geminiKey = CONFIG.GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
 
-            if (response.ok) {
-                const data = await response.json();
-                let text = data.content[0].text;
-                text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-                return JSON.parse(text);
+        if (geminiKey) {
+            try {
+                console.log('[Band] Calling Gemini to parse director instruction...');
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `${CONFIG.DIRECTOR.systemPrompt}\n\nInstruction: "${instruction}"\n\nRespond ONLY with valid JSON, no markdown.`
+                            }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 800
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+                        console.log('[Band] Gemini parsed instructions:', text.substring(0, 100) + '...');
+                        return JSON.parse(text);
+                    }
+                }
+            } catch (e) {
+                console.warn('[Band] Director parsing failed, using fallback:', e);
             }
-        } catch (e) {
-            console.warn('[Band] Director parsing failed, using fallback:', e);
         }
 
         // Fallback: give same instruction to all
