@@ -356,23 +356,16 @@ stack(
         }
 
         // Load drum machines + Dirt samples from dough-samples
-        // Using 2-argument form: samples(jsonUrl, basePath)
+        // Using 1-argument form (JSON files have _base paths embedded)
         try {
-            const base = 'https://raw.githubusercontent.com/felixroos/dough-samples/main';
+            const ds = 'https://raw.githubusercontent.com/felixroos/dough-samples/main/';
             console.log('[Strudel] Loading samples from dough-samples...');
 
             await Promise.all([
                 // Drum machines (RolandTR909, RolandTR808, etc.)
-                samples(
-                    `${base}/tidal-drum-machines.json`,
-                    `${base}/tidal-drum-machines/`
-                ),
-
+                samples(`${ds}tidal-drum-machines.json`),
                 // Dirt-Samples (bd, sd, hh, cp, etc.)
-                samples(
-                    `${base}/Dirt-Samples.json`,
-                    `${base}/Dirt-Samples/`
-                ),
+                samples(`${ds}Dirt-Samples.json`),
             ]);
 
             console.log('[Strudel] dough-samples (drum-machines + Dirt-Samples) loaded!');
