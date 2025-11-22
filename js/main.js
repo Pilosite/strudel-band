@@ -474,34 +474,114 @@ class App {
      * Toggle listening mode (Gemini audio streaming)
      */
     async toggleListening() {
-        if (!this.geminiManager) {
-            this.ui.addChatMessage('system',
-                'Listening mode requires Gemini API key. Add ?geminiKey=YOUR_KEY to URL.');
-            return;
-        }
-
         this.isListening = !this.isListening;
         this.ui.updateListenMode(this.isListening);
 
         if (this.isListening) {
-            this.ui.addChatMessage('system', 'Agents are now listening to the music...');
+            this.ui.addChatMessage('system', '🎧 Agents are now listening to the music...');
 
-            // Start capturing audio
-            this.audioCapture.startCapture((base64Audio) => {
-                this.geminiManager.sendAudioToAll(base64Audio);
-            });
+            // Show each agent starting to listen
+            const agentMessages = {
+                drums: "J'écoute le groove... 🥁",
+                bass: "Je capte les basses fréquences... 🎸",
+                lead: "Je suis les mélodies... 🎹",
+                pads: "J'analyse l'atmosphère... 🎛️",
+                fx: "Je guette les textures... ✨"
+            };
 
-            // Start listening sessions for each agent
+            // Each agent says hello
             for (const [agentId, agent] of this.band.getAllAgents()) {
-                await this.geminiManager.startListening(agentId, (msg) => {
-                    // Handle agent response to audio
-                    this.handleAgentAudioResponse(agentId, msg);
+                setTimeout(() => {
+                    this.ui.addChatMessage(agentId, agentMessages[agentId] || "J'écoute...");
+                }, Math.random() * 1000 + 200);
+            }
+
+            // If Gemini is available, use real audio streaming
+            if (this.geminiManager) {
+                // Start capturing audio
+                this.audioCapture.startCapture((base64Audio) => {
+                    this.geminiManager.sendAudioToAll(base64Audio);
                 });
+
+                // Start listening sessions for each agent
+                for (const [agentId, agent] of this.band.getAllAgents()) {
+                    await this.geminiManager.startListening(agentId, (msg) => {
+                        this.handleAgentAudioResponse(agentId, msg);
+                    });
+                }
+            } else {
+                // Demo mode - simulate periodic agent responses
+                this.startDemoListening();
             }
         } else {
-            this.ui.addChatMessage('system', 'Agents stopped listening.');
-            this.audioCapture.stopCapture();
-            this.geminiManager.stopAll();
+            this.ui.addChatMessage('system', '🔇 Agents stopped listening.');
+            this.stopDemoListening();
+
+            if (this.geminiManager) {
+                this.audioCapture.stopCapture();
+                this.geminiManager.stopAll();
+            }
+        }
+    }
+
+    /**
+     * Demo listening mode - agents give simulated feedback
+     */
+    startDemoListening() {
+        const demoResponses = {
+            drums: [
+                "Ce groove est solide! 🔥",
+                "Je sens le tempo...",
+                "Les kicks claquent bien!",
+                "On pourrait ajouter des fills ici"
+            ],
+            bass: [
+                "La ligne de basse groove!",
+                "Je suis en harmonie avec les drums",
+                "Ces basses fréquences... 🎶",
+                "On pourrait monter d'une octave?"
+            ],
+            lead: [
+                "J'aime cette mélodie!",
+                "Je pourrais ajouter des arpèges",
+                "Le lead se marie bien avec les pads",
+                "Prêt pour un solo? 🎹"
+            ],
+            pads: [
+                "L'atmosphère est parfaite",
+                "Ces textures sont douces...",
+                "Je maintiens l'harmonie",
+                "Ambiance spacieuse! 🌌"
+            ],
+            fx: [
+                "J'ajoute des textures subtiles ✨",
+                "Ces delays sonnent bien!",
+                "Je sens le vibe",
+                "Prêt à glitcher! 🎛️"
+            ]
+        };
+
+        this.demoListenInterval = setInterval(() => {
+            if (!this.isListening || !this.isPlaying) return;
+
+            // Pick a random agent to speak
+            const agents = ['drums', 'bass', 'lead', 'pads', 'fx'];
+            const agentId = agents[Math.floor(Math.random() * agents.length)];
+            const responses = demoResponses[agentId];
+            const response = responses[Math.floor(Math.random() * responses.length)];
+
+            this.ui.addChatMessage(agentId, response);
+            this.ui.showBubble(agentId, response);
+        }, 4000 + Math.random() * 3000); // Every 4-7 seconds
+    }
+
+    /**
+     * Stop demo listening
+     */
+    stopDemoListening() {
+        if (this.demoListenInterval) {
+            clearInterval(this.demoListenInterval);
+            this.demoListenInterval = null;
         }
     }
 
