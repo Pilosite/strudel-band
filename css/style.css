@@ -1117,3 +1117,96 @@ body {
     border-color: var(--text-secondary);
     color: var(--text-primary);
 }
+
+/* ============================================
+   DEBUG PANEL
+   ============================================ */
+.debug-panel {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 500px;
+    max-width: 90vw;
+    height: 300px;
+    background: var(--bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    display: none;
+    flex-direction: column;
+    z-index: 1500;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.debug-panel.active {
+    display: flex;
+}
+
+.debug-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--gap-sm) var(--gap-md);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.debug-actions {
+    display: flex;
+    gap: var(--gap-xs);
+}
+
+.debug-actions button {
+    padding: 4px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.debug-actions button:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+#btnCloseDebug {
+    font-size: 16px;
+    padding: 4px 8px;
+}
+
+.debug-logs {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--gap-sm);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    background: var(--bg-dark);
+}
+
+.debug-log {
+    padding: 4px 8px;
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.debug-log.log {
+    color: var(--text-secondary);
+}
+
+.debug-log.warn {
+    background: rgba(255, 200, 0, 0.1);
+    color: #ffc800;
+}
+
+.debug-log.error {
+    background: rgba(255, 100, 100, 0.1);
+    color: #ff6b6b;
+}
