@@ -200,12 +200,20 @@ class App {
             }
         }
 
-        // Also check for Gemini key
+        // Also check for Gemini key - but don't block if init fails
         const geminiKey = params.get('geminiKey') || localStorage.getItem('gemini_api_key');
         if (geminiKey) {
-            CONFIG.GEMINI_API_KEY = geminiKey;
-            this.geminiManager = new GeminiAgentManager(geminiKey);
-            this.geminiManager.init();
+            try {
+                CONFIG.GEMINI_API_KEY = geminiKey;
+                this.geminiManager = new GeminiAgentManager(geminiKey);
+                // Don't await init - let it run in background
+                this.geminiManager.init().catch(e => {
+                    console.warn('[App] Gemini init failed:', e);
+                });
+                console.log('[App] Gemini manager created');
+            } catch (e) {
+                console.warn('[App] Failed to create Gemini manager:', e);
+            }
         }
     }
 
