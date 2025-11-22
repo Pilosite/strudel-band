@@ -96,15 +96,23 @@ CRITICAL RULES:
 3. ALWAYS use m("pattern").note().s("synthname") syntax - m() parses mini-notation
 4. Valid effects: .lpf(freq) .decay(time) .attack(time) .release(time) .gain(0-1) .delay(0-1) .room(0-1)
 5. Mini-notation: "c4 e4 g4" (sequence), "<c4 e4>" (alternate), "[c4 e4]" (simultaneous), "c4*4" (repeat), "~" (rest)
-6. BAR LENGTH: Use .slow(n) for longer patterns. .slow(2) = 8 bars, .slow(4) = 16 bars. Use .fast(2) for faster.
-7. Keep patterns simple and musical
-8. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
+6. Keep patterns simple and musical
+7. DO NOT use: note() without m(), mask, stutter, slide, pan, or any undefined functions
+
+BAR/LOOP LENGTH (Ableton-style - each instrument can have different lengths):
+- 1 bar: use .fast(4) - pattern loops 4x per cycle
+- 2 bars: use .fast(2) - pattern loops 2x per cycle
+- 4 bars: default, no modifier needed
+- 8 bars: use .slow(2) - pattern spans 2 cycles
+- 16 bars: use .slow(4) - pattern spans 4 cycles
+
+If user asks for "1 mesure", "2 bars", etc., apply the correct modifier!
 
 EXAMPLES:
+- Drums 1 bar: s("bd hh sd hh").fast(4).gain(0.8)
 - Drums 4 bars: s("bd hh sd hh").gain(0.8)
-- Drums 8 bars: s("bd hh sd hh bd hh sd cp").slow(2).gain(0.8)
-- Bass: m("c2 [~ c2] eb2 g2").note().s("sawtooth").lpf(800).decay(0.2).gain(0.5)
-- Lead 8-bar solo: m("c4 e4 g4 b4 c5 b4 g4 e4").note().s("square").slow(2).lpf(2000).gain(0.5)
+- Bass 8 bars: m("c2 eb2 g2 bb2 c3 bb2 g2 eb2").note().s("sawtooth").slow(2).lpf(800).gain(0.5)
+- Lead 16-bar solo: m("c4 e4 g4 b4 c5 d5 e5 g5 a5 g5 e5 d5 c5 b4 g4 e4").note().s("square").slow(4).lpf(2000).gain(0.5)
 - Pads: m("<c3 e3 g3>").note().s("triangle").lpf(500).attack(0.5).release(2).gain(0.3)
 - FX: m("c5*4").note().s("sine").decay(0.05).delay(0.5).gain(0.2)`;
 
@@ -227,15 +235,46 @@ Generate your pattern now:`;
             pattern = agentPatterns.default;
         }
 
-        // Detect bar length and apply .slow() modifier
-        // 8 bars/mesures = .slow(2), 16 bars = .slow(4)
-        if (lowerPrompt.includes('16 bar') || lowerPrompt.includes('16 mesure')) {
-            pattern = pattern.replace(/\.gain\(/, '.slow(4).gain(');
-        } else if (lowerPrompt.includes('8 bar') || lowerPrompt.includes('8 mesure')) {
-            pattern = pattern.replace(/\.gain\(/, '.slow(2).gain(');
+        // Detect bar length and apply .fast() or .slow() modifier
+        // Ableton-style: each instrument can have different loop lengths
+        // 1 bar = .fast(4), 2 bars = .fast(2), 4 bars = default, 8 bars = .slow(2), 16 bars = .slow(4)
+        const barModifier = this.detectBarModifier(lowerPrompt);
+        if (barModifier) {
+            pattern = pattern.replace(/\.gain\(/, `${barModifier}.gain(`);
         }
 
         return pattern;
+    }
+
+    /**
+     * Detect bar length from prompt and return the appropriate modifier
+     */
+    detectBarModifier(prompt) {
+        // Match patterns like "1 bar", "1 mesure", "2 bars", "8 mesures", etc.
+        // Also match French: "sur 8 mesures", "en 2 mesures"
+
+        // 16 bars
+        if (/16\s*(bar|mesure)/i.test(prompt) || /seize\s*(bar|mesure)/i.test(prompt)) {
+            return '.slow(4)';
+        }
+        // 8 bars
+        if (/8\s*(bar|mesure)/i.test(prompt) || /huit\s*(bar|mesure)/i.test(prompt)) {
+            return '.slow(2)';
+        }
+        // 2 bars
+        if (/2\s*(bar|mesure)/i.test(prompt) || /deux\s*(bar|mesure)/i.test(prompt)) {
+            return '.fast(2)';
+        }
+        // 1 bar (check after 16, 12, etc. to avoid false matches)
+        if (/(?:^|\s)1\s*(bar|mesure)/i.test(prompt) || /une?\s*(bar|mesure)/i.test(prompt)) {
+            return '.fast(4)';
+        }
+        // 4 bars is default, no modifier needed
+        if (/4\s*(bar|mesure)/i.test(prompt) || /quatre\s*(bar|mesure)/i.test(prompt)) {
+            return null; // default
+        }
+
+        return null;
     }
 
     /**

@@ -97,14 +97,24 @@ IMPORTANT RULES:
 1. If the user mentions a SPECIFIC instrument (bass, drums, lead, pads, fx), ONLY modify that instrument
 2. Only include instruments that need to change in the JSON
 3. If the instruction is general (like "more energy"), then include all instruments
-4. BAR LENGTH: If user says "8 bars", "8 mesures", "16 bars", include that in the instruction
-   - "solo sur 8 mesures" → instruction should say "8-bar solo" or "use .slow(2)"
-   - Default is 4 bars (1 cycle)
 
-Examples:
+BAR/LOOP LENGTH (Ableton-style):
+Each instrument can have a DIFFERENT loop length. They sync automatically.
+Examples: drums on 1-bar loop + bass on 8-bar = drums loops 8x while bass plays once.
+
+LENGTH MAPPING (ALWAYS include in instruction):
+- "1 bar/mesure" → add ".fast(4)" to instruction
+- "2 bars/mesures" → add ".fast(2)" to instruction
+- "4 bars/mesures" → default, no modifier needed
+- "8 bars/mesures" → add ".slow(2)" to instruction
+- "16 bars/mesures" → add ".slow(4)" to instruction
+
+EXAMPLES:
+- "beat sur 1 mesure" → {"drums": "1-bar loop, use .fast(4)"}
+- "basse sur 8 mesures" → {"bass": "8-bar pattern, use .slow(2)"}
+- "lead solo 16 bars" → {"lead": "16-bar solo, use .slow(4)"}
+- "drums minimal 2 bars" → {"drums": "minimal 2-bar pattern, use .fast(2)"}
 - "fais moi une basse funky" → {"bass": "funky bass pattern"}
-- "lead solo sur 8 mesures" → {"lead": "8-bar melodic solo, use .slow(2)"}
-- "drums plus minimal, 8 bars" → {"drums": "minimal 8-bar pattern with .slow(2)"}
 - "everything more intense" → all instruments
 
 Respond in JSON format with ONLY the instruments that need to change:
