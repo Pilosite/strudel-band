@@ -321,11 +321,23 @@ CRITICAL RULES:
 8. DO NOT use: .bank(), mask, stutter, slide, pan, or any undefined functions
 9. Available drum sounds: 808bd, 808sd, 808ch, 808oh, 808cp, 808mt, 808ht, 808lt, 909bd, 909sd, 909ch, 909oh, 909cp
 
+BAR LENGTH MODIFIER - VERY IMPORTANT:
+- 1 bar: add .fast(4) at the end
+- 2 bars: add .fast(2) at the end
+- 4 bars: NO modifier (this is the default)
+- 8 bars: add .slow(2) at the end
+- 16 bars: add .slow(4) at the end
+
 VARIATION RULES:
 - Use DIFFERENT rhythms and note patterns each time
 - Vary note durations and densities
 - Try syncopation, off-beats, rests
 - Use Strudel modifiers: .every(), .sometimes(), .off(), .rev()
+
+FUNCTION REFERENCE SYNTAX - CRITICAL:
+- .every(N, functionName) - functionName is NOT quoted!
+- CORRECT: .every(2, rev)  .sometimes(fast(2))  .off(0.25, add(7))
+- WRONG: .every(2, "rev")  .sometimes("fast(2)")  (DO NOT quote functions!)
 ${historyInfo}
 
 EXAMPLES for ${suggestedLength}-bar patterns:
@@ -554,7 +566,7 @@ Generate your ${suggestedLength}-bar pattern now:`;
     }
 
     /**
-     * Clean generated code
+     * Clean generated code - sanitize common Gemini mistakes
      */
     cleanCode(code) {
         if (!code) return '';
@@ -577,7 +589,40 @@ Generate your ${suggestedLength}-bar pattern now:`;
                    /^[a-z]+\(/.test(trimmed);
         });
 
-        return codeLines.join('\n').trim() || code.trim();
+        let cleanedCode = codeLines.join('\n').trim() || code.trim();
+
+        // === SANITIZE COMMON GEMINI MISTAKES ===
+
+        // Fix quoted function references: .every(2, "rev") → .every(2, rev)
+        // Also handles: .sometimes("fast(2)") → .sometimes(fast(2))
+        const functionNames = ['rev', 'fast', 'slow', 'ply', 'add', 'sub', 'mul', 'div', 'hurry', 'degrade', 'palindrome'];
+        functionNames.forEach(fn => {
+            // Match .every(N, "fn") or .every(N, "fn(args)")
+            const quotedFnRegex = new RegExp(`\\.(every|sometimes|often|rarely|almostNever|almostAlways|first|last)\\s*\\(\\s*(\\d+)\\s*,\\s*["']${fn}(\\([^"']*\\))?["']\\s*\\)`, 'g');
+            cleanedCode = cleanedCode.replace(quotedFnRegex, (match, method, n, args) => {
+                return `.${method}(${n}, ${fn}${args || ''})`;
+            });
+
+            // Match .sometimes("fn") without number arg
+            const quotedFnSimpleRegex = new RegExp(`\\.(sometimes|often|rarely)\\s*\\(\\s*["']${fn}(\\([^"']*\\))?["']\\s*\\)`, 'g');
+            cleanedCode = cleanedCode.replace(quotedFnSimpleRegex, (match, method, args) => {
+                return `.${method}(${fn}${args || ''})`;
+            });
+        });
+
+        // Fix .every(N, "x => ...") patterns - remove quotes around arrow functions
+        cleanedCode = cleanedCode.replace(/\.(every|sometimes)\s*\(\s*(\d+)\s*,\s*["']([^"']+=>[ ]*[^"']+)["']\s*\)/g, '.$1($2, $3)');
+
+        // Remove any remaining invalid function calls that Gemini might generate
+        // e.g., .mask(), .stutter() - just remove them
+        cleanedCode = cleanedCode.replace(/\.(mask|stutter|slide|pan)\s*\([^)]*\)/g, '');
+
+        // Fix double dots: ..slow() → .slow()
+        cleanedCode = cleanedCode.replace(/\.\.+/g, '.');
+
+        console.log(`[${this.id}] 🔧 Sanitized code:`, cleanedCode.substring(0, 100) + '...');
+
+        return cleanedCode;
     }
 
     /**
