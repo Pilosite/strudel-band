@@ -442,24 +442,34 @@ Generate your ${suggestedLength}-bar pattern now:`;
                         console.log(`[${this.id}] ========================`);
                         console.log(text);
                         console.log(`[${this.id}] ========================`);
+
+                        // Show in chat UI
+                        this.say(`🤖 Gemini: ${text.substring(0, 120)}${text.length > 120 ? '...' : ''}`);
+
                         return text;
                     } else {
                         console.warn(`[${this.id}] ⚠️ Gemini response empty or malformed:`, JSON.stringify(data).substring(0, 200));
+                        this.say(`⚠️ Gemini response vide`);
                     }
                 } else {
                     const error = await response.text();
                     console.error(`[${this.id}] ❌ Gemini API error (${response.status}):`, error.substring(0, 300));
+                    this.say(`❌ Gemini error: ${response.status}`);
                 }
             } catch (e) {
                 console.error(`[${this.id}] ❌ Gemini API call failed:`, e.message);
+                this.say(`❌ Gemini failed: ${e.message}`);
             }
         } else {
             console.log(`[${this.id}] ⚠️ No Gemini API key found`);
+            this.say(`⚠️ Pas de clé Gemini - fallback local`);
         }
 
         // Fallback to demo patterns
         console.log(`[${this.id}] 📝 Using fallback demo pattern (Gemini unavailable)`);
-        return this.getDemoPattern(prompt);
+        const fallbackPattern = this.getDemoPattern(prompt);
+        this.say(`📝 Fallback: ${fallbackPattern.substring(0, 80)}...`);
+        return fallbackPattern;
     }
 
     /**
