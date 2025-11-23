@@ -393,9 +393,15 @@ Generate your ${suggestedLength}-bar pattern now:`;
         // Try Gemini API if available
         const geminiKey = CONFIG.GEMINI_API_KEY || localStorage.getItem('gemini_api_key');
 
+        console.log(`[${this.id}] generateWithFallback called`);
+        console.log(`[${this.id}] Gemini key available:`, !!geminiKey);
+
         if (geminiKey) {
             try {
-                console.log(`[${this.id}] Calling Gemini API for generation...`);
+                console.log(`[${this.id}] 🤖 Calling Gemini API...`);
+                console.log(`[${this.id}] System prompt length:`, systemPrompt.length);
+                console.log(`[${this.id}] User prompt:`, prompt);
+
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
                     method: 'POST',
                     headers: {
@@ -414,24 +420,33 @@ Generate your ${suggestedLength}-bar pattern now:`;
                     })
                 });
 
+                console.log(`[${this.id}] Gemini response status:`, response.status);
+
                 if (response.ok) {
                     const data = await response.json();
                     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
                     if (text) {
-                        console.log(`[${this.id}] Gemini generated:`, text.substring(0, 100) + '...');
+                        console.log(`[${this.id}] ✅ Gemini RAW response:`);
+                        console.log(`[${this.id}] ========================`);
+                        console.log(text);
+                        console.log(`[${this.id}] ========================`);
                         return text;
+                    } else {
+                        console.warn(`[${this.id}] ⚠️ Gemini response empty or malformed:`, JSON.stringify(data).substring(0, 200));
                     }
                 } else {
                     const error = await response.text();
-                    console.warn(`[${this.id}] Gemini API error:`, error);
+                    console.error(`[${this.id}] ❌ Gemini API error (${response.status}):`, error.substring(0, 300));
                 }
             } catch (e) {
-                console.warn(`[${this.id}] Gemini API call failed:`, e);
+                console.error(`[${this.id}] ❌ Gemini API call failed:`, e.message);
             }
+        } else {
+            console.log(`[${this.id}] ⚠️ No Gemini API key found`);
         }
 
         // Fallback to demo patterns
-        console.log(`[${this.id}] Using demo pattern`);
+        console.log(`[${this.id}] 📝 Using fallback demo pattern (Gemini unavailable)`);
         return this.getDemoPattern(prompt);
     }
 
